@@ -6,7 +6,11 @@
 :sectnums:
 
 == 3. Utility tree
+
+Este capítulo describe los atributos de calidad prioritarios además de su árbol de calidad.
+
 === 3.1 Arbol de utilidades
+
 image::img/utilityTree/utilityTree.jpg[Utility Tree, width=800]
 
 == 4. Escenarios de Atributos de Calidad
