@@ -68,7 +68,7 @@ A continuación, se detallan los interesados y sus preocupaciones clave, que son
 | **Líderes de Negocio** | **Mitigación de Riesgos y Alineación Estratégica:** La arquitectura debe ser resiliente, manejar picos de tráfico de forma controlada y asegurar la visión del proyecto: transformar la gestión de reservas en una ventaja competitiva.
 |===
 
-=== 2.3 Diagramas de Casos de Uso
+== 2.3 Diagramas de Casos de Uso
 Los siguientes diagramas detallan las funcionalidades principales del sistema, agrupadas por los módulos de negocio más importantes que interactúan con los actores clave (Huésped, Recepcionista, Administrador y Auditor).
 
 ==== Gestión de Cuentas y Políticas
@@ -89,11 +89,11 @@ image::img/UCDiagrams/Gestión de Hoteles.jpg[Diagrama CU: Gestión de Hoteles, 
 ==== Flujo Principal
 image::img/UCDiagrams/Reservaciones y Cuentas de Huésped.jpg[Diagrama CU: Reservaciones y Cuentas de Huésped, width=600]
 
-=== 2.4 Descripciones de casos de uso.
+== 2.4 Descripciones de casos de uso.
 
 Casos de Uso (Huésped)
 [#CU-01]
-== CU-01: Consultar disponibilidad de habitaciones
+=== CU-01: Consultar disponibilidad de habitaciones
 
 ID:: CU-01
 Nombre:: Consultar disponibilidad de habitaciones
@@ -127,7 +127,7 @@ RN-02 Precios Dinámicos: El precio mostrado al Huésped debe calcularse por dí
 RN-03 Coherencia de Precios: El precio total de la estancia mostrado al huésped debe ser exactamente el que se usará.
 
 [#CU-02]
-== CU-02: Reservar una Habitación
+=== CU-02: Reservar una Habitación
 
 ID:: CU-02
 Nombre:: Reservar una Habitación
@@ -159,7 +159,7 @@ Postcondiciones::
 Reglas de negocio::
 
 [#CU-03]
-== CU-03: Hacer pago con tarjeta
+=== CU-03: Hacer pago con tarjeta
 
 ID:: CU-03
 Nombre:: Hacer pago con tarjeta
@@ -199,7 +199,7 @@ Reglas de negocio::
 RN-02 Transacción Única: El sistema debe garantizar que cada intento de cobro a la pasarela de pago sea procesado solo una vez para evitar dobles cobros.
 
 [#CU-04]
-== CU-04: Cancelar una reservación
+=== CU-04: Cancelar una reservación
 
 ID:: CU-04
 Nombre:: Cancelar una reservación
@@ -238,7 +238,7 @@ RN-01: El cálculo del reembolso debe aplicar las reglas y penalizaciones defini
 RN-02: Toda cancelación debe ser registrada para permitir su rastreo por parte de Auditoría.
 
 [#CU-05]
-== CU-05: Crear cuenta de huésped
+=== CU-05: Crear cuenta de huésped
 
 ID:: CU-05
 Nombre:: Crear cuenta de huésped
@@ -269,7 +269,7 @@ Postcondiciones:: POST-01: Se ha creado y almacenado una nueva cuenta de huéspe
 Reglas de negocio:: RN-01: La contraseña seleccionada por el huésped debe cumplir con las políticas de seguridad mínimas del sistema.
 
 [#CU-06]
-== CU-06: Consultar mis reservaciones
+=== CU-06: Consultar mis reservaciones
 
 ID:: CU-06
 Nombre:: Consultar mis reservaciones
@@ -297,7 +297,7 @@ Reglas de negocio::
 
 Casos de Uso (Recepcionista)
 [#CU-07]
-== CU-07: Registrar salida (Check-out)
+=== CU-07: Registrar salida (Check-out)
 
 ID:: CU-07
 Nombre:: Registrar salida (Check-out)
@@ -332,7 +332,7 @@ POST-02: El estado de la habitación se ha actualizado a Pendiente de Limpieza.
 Reglas de negocio:: RN-01: Todos los consumos registrados en la cuenta del huésped deben ser liquidados para poder completar el check-out.
 
 [#CU-08]
-== CU-08: Registrar llegada (check-in)
+=== CU-08: Registrar llegada (check-in)
 
 ID:: CU-08
 Nombre:: Registrar llegada (check-in)
@@ -362,7 +362,7 @@ Postcondiciones:: POST-01 La reserva del huésped se actualiza a un estado "Acti
 Reglas de negocio::
 
 [#CU-09]
-== CU-09: Cambiar de habitación a un huésped
+=== CU-09: Cambiar de habitación a un huésped
 
 ID:: CU-09
 Nombre:: Cambiar de habitación a un huésped
@@ -394,7 +394,7 @@ Postcondiciones:: POST-01: La estancia del huésped queda registrada en la nueva
 Reglas de negocio:: RN-01: Cualquier diferencia en la tarifa por cambio de tipo de habitación debe ser registrada en la cuenta del huésped.
 
 [#CU-10]
-== CU-10: Registrar consumo o servicio
+=== CU-10: Registrar consumo o servicio
 
 ID:: CU-10
 Nombre:: Registrar consumo o servicio
@@ -424,7 +424,7 @@ Postcondiciones:: POST-01: El nuevo cargo ha sido registrado y añadido al estad
 Reglas de negocio::
 
 [#CU-11]
-== CU-11: Buscar reserva de huésped
+=== CU-11: Buscar reserva de huésped
 
 ID:: CU-11
 Nombre:: Buscar reserva de huésped
@@ -453,7 +453,7 @@ Postcondiciones:: POST-01: El recepcionista ha visualizado la información detal
 Reglas de negocio::
 
 [#CU-12]
-== CU-12: Consultar estado de habitación
+=== CU-12: Consultar estado de habitación
 
 ID:: CU-12
 Nombre:: Consultar estado de habitación
@@ -484,7 +484,7 @@ Aquí tienes la siguiente sección, que cubre la primera parte de los Casos de U
 
 Casos de Uso (Administrador - Gestión de Hoteles y Habitaciones)
 [#CU-13]
-== CU-13: Registrar nuevo hotel
+=== CU-13: Registrar nuevo hotel
 
 ID:: CU-13
 Nombre:: Registrar nuevo hotel
@@ -515,7 +515,7 @@ Postcondiciones:: PS-01: Se ha creado un nuevo registro de hotel en el sistema, 
 Reglas de negocio::
 
 [#CU-14]
-== CU-14: Consultar información de hotel
+=== CU-14: Consultar información de hotel
 
 ID:: CU-14
 Nombre:: Consultar información de hotel
@@ -542,7 +542,7 @@ Postcondiciones:: POST-01: El Administrador ha visualizado la información del h
 Reglas de negocio::
 
 [#CU-15]
-== CU-15: Actualizar información de hotel
+=== CU-15: Actualizar información de hotel
 
 ID:: CU-15
 Nombre:: Actualizar información de hotel
@@ -569,7 +569,7 @@ Postcondiciones:: POST-01 La información del hotel ha sido actualizada en la ba
 Reglas de negocio::
 
 [#CU-16]
-== CU-16: Desactivar hotel
+=== CU-16: Desactivar hotel
 
 ID:: CU-16
 Nombre:: Desactivar hotel
@@ -601,7 +601,7 @@ RN-01 Por políticas de auditoría, los registros de hoteles no se eliminan fisi
 RN-02 Un hotel con reservaciones futuras no puede ser desactivado. La resolución manual de estas reservas (reubicación o cancelación) es un prerrequisito para la desactivación.
 
 [#CU-17]
-== CU-17: Registrar tipo de habitación
+=== CU-17: Registrar tipo de habitación
 
 ID:: CU-17
 Nombre:: Registrar tipo de habitación
@@ -632,7 +632,7 @@ Postcondiciones:: POST-01 Se ha creado una nueva categoría de habitación, disp
 Reglas de negocio::
 
 [#CU-18]
-== CU-18: Consultar tipos de habitación
+=== CU-18: Consultar tipos de habitación
 
 ID:: CU-18
 Nombre:: Consultar tipos de habitación
@@ -658,7 +658,7 @@ Postcondiciones:: POST-01 El Administrador ha visualizado la lista de tipos de h
 Reglas de negocio::
 
 [#CU-19]
-== CU-19: Actualizar tipo de habitación
+=== CU-19: Actualizar tipo de habitación
 
 ID:: CU-19
 Nombre:: Actualizar tipo de habitación
@@ -685,7 +685,7 @@ Postcondiciones:: POST-01 La información del tipo de habitación ha sido actual
 Reglas de negocio::
 
 [#CU-20]
-== CU-20: Desactivar tipo de habitación
+=== CU-20: Desactivar tipo de habitación
 
 ID:: CU-20
 Nombre:: Desactivar tipo de habitación
@@ -716,7 +716,7 @@ Postcondiciones:: POST-01 El estado del tipo de habitación se actualiza a "Inac
 Reglas de negocio:: RN-01: Un tipo de habitación que esté asignado a una o más habitaciones fisicas no puede ser desactivado. Se debe reasignar cada habitación afectada antes de proceder.
 
 [#CU-21]
-== CU-21: Registrar habitación
+=== CU-21: Registrar habitación
 
 ID:: CU-21
 Nombre:: Registrar habitación
@@ -746,7 +746,7 @@ Postcondiciones:: POST-01 Se ha añadido una nueva habitación al inventario de 
 Reglas de negocio::
 
 [#CU-22]
-== CU-22: Consultar estado de habitación
+=== CU-22: Consultar estado de habitación
 
 ID:: CU-22
 Nombre:: Consultar estado de habitación
@@ -773,7 +773,7 @@ Postcondiciones:: POST-01 El actor ha visualizado el estado y los detalles de la
 Reglas de negocio::
 
 [#CU-23]
-== CU-23: Actualizar estado de habitación
+=== CU-23: Actualizar estado de habitación
 
 ID:: CU-23
 Nombre:: Actualizar estado de habitación
@@ -803,7 +803,7 @@ Postcondiciones:: POST-01 El estado de la habitación ha sido actualizado en el 
 Reglas de negocio::
 
 [#CU-24]
-== CU-24: Desactivar habitación
+=== CU-24: Desactivar habitación
 
 ID:: CU-24
 Nombre:: Desactivar habitación
@@ -834,7 +834,7 @@ Reglas de negocio:: RN-01: Una habitación física no puede ser desactivada si e
 
 Casos de Uso (Administrador - Gestión de Personal, Tarifas y Políticas)
 [#CU-25]
-== CU-25: Registrar cuenta de personal
+=== CU-25: Registrar cuenta de personal
 
 ID:: CU-25
 Nombre:: Registrar cuenta de personal
@@ -865,7 +865,7 @@ Postcondiciones:: POST-01: Se ha creado una nueva cuenta de personal en el siste
 Reglas de negocio:: RN-02: El rol asignado al usuario determinará su nivel de acceso y los permisos dentro del sistema.
 
 [#CU-26]
-== CU-26: Consultar cuentas de personal
+=== CU-26: Consultar cuentas de personal
 
 ID:: CU-26
 Nombre:: Consultar cuentas de personal
@@ -896,7 +896,7 @@ Postcondiciones::
 Reglas de negocio::
 
 [#CU-27]
-== CU-27: Actualizar cuenta de personal
+=== CU-27: Actualizar cuenta de personal
 
 ID:: CU-27
 Nombre:: Actualizar cuenta de personal
@@ -923,7 +923,7 @@ Postcondiciones:: POST-01: La información de la cuenta de personal ha sido actu
 Reglas de negocio::
 
 [#CU-28]
-== CU-28: Dar de baja cuenta personal
+=== CU-28: Dar de baja cuenta personal
 
 ID:: CU-28
 Nombre:: Dar de baja cuenta personal
@@ -952,7 +952,7 @@ Postcondiciones:: POST-01: El acceso del empleado al sistema ha sido revocado.
 Reglas de negocio::
 
 [#CU-29]
-== CU-29: Gestionar tarifa base
+=== CU-29: Gestionar tarifa base
 
 ID:: CU-29
 Nombre:: Gestionar tarifa base
@@ -979,7 +979,7 @@ Postcondiciones:: POST-01: La tarifa base para el tipo de habitación selecciona
 Reglas de negocio::
 
 [#CU-30]
-== CU-30: Gestionar precio por día
+=== CU-30: Gestionar precio por día
 
 ID:: CU-30
 Nombre:: Gestionar precio por día
@@ -1006,7 +1006,7 @@ Postcondiciones:: POST-01: El sistema aplicará los precios definidos para las f
 Reglas de negocio::
 
 [#CU-31]
-== CU-31: Consultar historial de tarifas
+=== CU-31: Consultar historial de tarifas
 
 ID:: CU-31
 Nombre:: Consultar historial de tarifas
@@ -1033,7 +1033,7 @@ Postcondiciones:: POST-01: El Administrador ha visualizado los datos históricos
 Reglas de negocio::
 
 [#CU-32]
-== CU-32: Gestionar política de overbooking
+=== CU-32: Gestionar política de overbooking
 
 ID:: CU-32
 Nombre:: Gestionar política de overbooking
@@ -1060,7 +1060,7 @@ Postcondiciones:: POST-01: El motor de reservas utilizará los nuevos límites d
 Reglas de negocio::
 
 [#CU-33]
-== CU-33: Gestionar política de cancelación
+=== CU-33: Gestionar política de cancelación
 
 ID:: CU-33
 Nombre:: Gestionar política de cancelación
@@ -1085,7 +1085,7 @@ Reglas de negocio::
 
 Casos de Uso (Auditor)
 [#CU-34]
-== CU-34: Rastrear una transacción
+=== CU-34: Rastrear una transacción
 
 ID:: CU-34
 Nombre:: Rastrear una transacción
