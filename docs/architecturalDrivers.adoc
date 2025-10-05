@@ -5,14 +5,14 @@
 :toclevels: 3
 :sectnums:
 
-=== 3.1 Utility tree
-image::docs/img/utilityTree/utilityTree.jpg[Utility Tree, width=800]
+== 3.1 Utility tree
+image::img/utilityTree/utilityTree.jpg[Utility Tree, width=800]
 
-=== 3.2 Escenarios de Atributos de Calidad
+== 3.2 Escenarios de Atributos de Calidad
 
 A continuación, se detallan los escenarios prioritarios que servirán como criterio para evaluar el diseño arquitectónico. Cada escenario se describe utilizando el formato de 6 partes para asegurar que sea específico, medible y realista.
 
-==== Confiabilidad
+=== Confiabilidad
 
 * *Definición:* El grado en que un sistema, producto o componente puede realizar las funciones especificadas bajo condiciones determinadas durante un período de tiempo especificado.
 * *Importancia para el sistema:* Es el atributo más crítico. El objetivo principal del proyecto es eliminar por completo los incidentes de dobles reservas y dobles cobros que dañan la reputación de la marca y generan pérdidas financieras.
@@ -65,7 +65,7 @@ A continuación, se detallan los escenarios prioritarios que servirán como crit
 | La operación de pago debe ejecutarse exactamente una vez. La tasa de dobles cobros por solicitudes duplicadas debe ser del 0%.
 |===
 
-==== Disponibilidad
+=== Disponibilidad
 
 * *Definición:* El grado en que un sistema, producto o componente es operacional y accesible para su uso cuando se requiere.
 * *Importancia para el sistema:* El negocio hotelero opera 24/7, y cualquier caída del sistema se traduce directamente en pérdida de ingresos y daño a la reputación, especialmente porque se busca reemplazar soluciones locales propensas a fallos.
@@ -94,7 +94,7 @@ A continuación, se detallan los escenarios prioritarios que servirán como crit
 | El sistema debe estar completamente operacional, usando la base de datos secundaria, en menos de 5 minutos.
 |===
 
-==== Rendimiento
+=== Rendimiento
 
 * *Definición:* El rendimiento relativo a la cantidad de recursos utilizados bajo condiciones determinadas.
 * *Importancia para el sistema:* Un sistema lento afecta la experiencia del cliente (riesgo de abandono de reserva) y la eficiencia del personal de recepción (filas en el mostrador). Las métricas de latencia son un objetivo de negocio explícito.

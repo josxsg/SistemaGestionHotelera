@@ -22,9 +22,9 @@ Por lo tanto, se justifica la creación de una plataforma de reservaciones centr
 == 2.2 Alcance y Propósito del Diseño
 Este apartado formaliza el alcance, las fronteras y el propósito del diseño arquitectónico para el nuevo Sistema de Reservaciones centralizado. Su objetivo es establecer un entendimiento común entre todos los interesados (stakeholders) sobre los límites del sistema, sus responsabilidades y las metas que se persiguen. Siguiendo la metodología Attribute-Driven Design (ADD), este análisis es el primer paso crucial, ya que las metas de negocio y las preocupaciones de los interesados, aquí descritas, servirán como la entrada principal para identificar y priorizar los impulsores arquitectónicos (Architectural Drivers), especialmente los atributos de calidad que darán forma a la estructura del software.
 
-==== 2.2.1 Diagrama de Contexto del Sistema
+=== 2.2.1 Diagrama de Contexto del Sistema
 
-image::docs/img/contextDiagram/diagramaContexto.jpg[Diagrama de Contexto, width=800]
+image::img/contextDiagram/diagramaContexto.jpg[Diagrama de Contexto, width=800]
 
 === 2.2.2 Fronteras del Sistema
 Las fronteras definen qué funcionalidades y responsabilidades pertenecen al sistema a construir y cuáles quedan fuera o son gestionadas por sistemas externos. El diagrama de contexto visualiza estas fronteras, mostrando al Sistema de Reservaciones como el componente central que interactúa con usuarios y sistemas externos, pero que no los incluye.
@@ -73,21 +73,21 @@ Los siguientes diagramas detallan las funcionalidades principales del sistema, a
 
 ==== Gestión de Cuentas y Políticas
 
-image::docs/img/UCDiagrams/Administración de Cuentas de Personal.jpg[Diagrama CU: Administración de Cuentas de Personal, width=600]
+image::img/UCDiagrams/Administración de Cuentas de Personal.jpg[Diagrama CU: Administración de Cuentas de Personal, width=600]
 
-image::docs/img/UCDiagrams/Administración de Tarifas y Políticas.jpg[Diagrama CU: Administración de Tarifas y Políticas, width=600]
+image::img/UCDiagrams/Administración de Tarifas y Políticas.jpg[Diagrama CU: Administración de Tarifas y Políticas, width=600]
 
-image::docs/img/UCDiagrams/Auditoría.jpg[Diagrama CU: Auditoría, width=600]
+image::img/UCDiagrams/Auditoría.jpg[Diagrama CU: Auditoría, width=600]
 
 ==== Gestión de Operaciones
-image::docs/img/UCDiagrams/Gestión de Estancias.jpg[Diagrama CU: Gestión de Estancias (Check-in/out), width=600]
+image::img/UCDiagrams/Gestión de Estancias.jpg[Diagrama CU: Gestión de Estancias (Check-in/out), width=600]
 
-image::docs/img/UCDiagrams/Gestión de Habitaciones.jpg[Diagrama CU: Gestión de Habitaciones, width=600]
+image::img/UCDiagrams/Gestión de Habitaciones.jpg[Diagrama CU: Gestión de Habitaciones, width=600]
 
-image::docs/img/UCDiagrams/Gestión de Hoteles.jpg[Diagrama CU: Gestión de Hoteles, width=600]
+image::img/UCDiagrams/Gestión de Hoteles.jpg[Diagrama CU: Gestión de Hoteles, width=600]
 
 ==== Flujo Principal
-image::docs/img/UCDiagrams/Reservaciones y Cuentas de Huésped.jpg[Diagrama CU: Reservaciones y Cuentas de Huésped, width=600]
+image::img/UCDiagrams/Reservaciones y Cuentas de Huésped.jpg[Diagrama CU: Reservaciones y Cuentas de Huésped, width=600]
 
 === 2.4 Descripciones de casos de uso.
 
