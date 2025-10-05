@@ -1,4 +1,15 @@
-=== Planteamiento del Problema
+= Definición de Requerimientos
+:doctype: book
+:lang: es
+:encoding: utf-8
+:toclevels: 3
+:sectnums:
+
+== 2. Definición de Requerimientos
+
+Este capítulo sienta las bases para el diseño arquitectónico del sistema. Primero, se justifica la necesidad del proyecto describiendo el problema de negocio y la oportunidad estratégica que representa. Luego, se formalizan las fronteras del diseño, identificando a los interesados clave y sus preocupaciones, las cuales servirán como la entrada principal para la metodología de Diseño Guiado por Atributos (ADD).
+
+=== 2.1 Planteamiento del Problema
 
 La cadena hotelera, con una vasta operación que abarca más de 5,000 hoteles y un inventario superior a 1,000,000 de habitaciones, enfrenta un desafío crítico que limita su potencial de crecimiento y eficiencia operativa. La situación actual se caracteriza por una infraestructura tecnológica fragmentada, donde cada hotel depende de una solución local de reservaciones. Este modelo descentralizado ha generado un ecosistema propenso a inconsistencias, errores y una marcada falta de control centralizado, afectando negativamente tanto la experiencia del cliente como la rentabilidad del negocio.
 
