@@ -1,19 +1,19 @@
-= Impulsores arquitectónicos (ASRs) y Priorización.
+= Impulsores Arquitectónicos (ASRs) y Priorización
 :doctype: book
 :lang: es
 :encoding: utf-8
 :toclevels: 3
 :sectnums:
 
-== 3. Utility tree
+== Árbol de Utilidades (Utility Tree)
 
-Este capítulo describe los atributos de calidad prioritarios además de su árbol de calidad.
+Este capítulo describe los atributos de calidad prioritarios que guiarán el diseño del sistema, representados visualmente en el árbol de utilidades y detallados en los escenarios de calidad.
 
-=== 3.1 Arbol de utilidades
+=== Árbol de Utilidades Consolidado
 
 image::img/utilityTree/utilityTree.jpg[Utility Tree, width=800]
 
-== 4. Escenarios de Atributos de Calidad
+== Escenarios de Atributos de Calidad (ASRs)
 
 A continuación, se detallan los escenarios prioritarios que servirán como criterio para evaluar el diseño arquitectónico. Cada escenario se describe utilizando el formato de 6 partes para asegurar que sea específico, medible y realista.
 
@@ -31,7 +31,7 @@ A continuación, se detallan los escenarios prioritarios que servirán como crit
 | Múltiples huéspedes externos.
 
 | Estímulo
-| 50 usuarios intentan reservar simultáneamente la última habitación de tipo "Suite" disponible para las mismas fechas durante un pico de demanda.
+| 50 usuarios intentan reservar simultáneamente la última habitación vendible (incluyendo el margen de overbooking) de tipo "Suite" para las mismas fechas.
 
 | Entorno
 | El sistema opera bajo una carga pico cercana a 10 TPS.
@@ -64,13 +64,13 @@ A continuación, se detallan los escenarios prioritarios que servirán como crit
 | El módulo de procesamiento de pagos y el de confirmación de reservas.
 
 | Respuesta
-| El sistema debe procesar el cobro de la primera solicitud y confirmar la reserva. Las dos solicitudes siguientes deben ser identificadas como duplicados de una transacción ya completada y ser rechazadas sin intentar un nuevo cobro.
+| El sistema debe procesar el cobro de la primera solicitud y confirmar la reserva. Las dos solicitudes siguientes deben ser identificadas como duplicados y ser rechazadas sin intentar un nuevo cobro.
 
 | Medida de Respuesta
 | La operación de pago debe ejecutarse exactamente una vez. La tasa de dobles cobros por solicitudes duplicadas debe ser del 0%.
 |===
 
-==== Disponibilidad
+=== Disponibilidad
 
 * *Definición:* El grado en que un sistema, producto o componente es operacional y accesible para su uso cuando se requiere.
 * *Importancia para el sistema:* El negocio hotelero opera 24/7, y cualquier caída del sistema se traduce directamente en pérdida de ingresos y daño a la reputación, especialmente porque se busca reemplazar soluciones locales propensas a fallos.
@@ -99,7 +99,7 @@ A continuación, se detallan los escenarios prioritarios que servirán como crit
 | El sistema debe estar completamente operacional, usando la base de datos secundaria, en menos de 5 minutos.
 |===
 
-==== Rendimiento
+=== Rendimiento
 
 * *Definición:* El rendimiento relativo a la cantidad de recursos utilizados bajo condiciones determinadas.
 * *Importancia para el sistema:* Un sistema lento afecta la experiencia del cliente (riesgo de abandono de reserva) y la eficiencia del personal de recepción (filas en el mostrador). Las métricas de latencia son un objetivo de negocio explícito.
@@ -127,4 +127,3 @@ A continuación, se detallan los escenarios prioritarios que servirán como crit
 | Medida de Respuesta
 | El tiempo total de confirmación debe ser P95 <= 2.5 segundos y P99 <= 4.0 segundos.
 |===
-
