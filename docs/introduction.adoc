@@ -1,0 +1,112 @@
+= Sistema de Gestión Hotelera
+:authors: Aldo Antonio Campos Gómez, Ángel Jonathan Puch Hernández, José Luis Silva Gómez
+:revdate: 30 de Septiembre de 2025
+:revnumber: 1.0
+:revremark: Creación inicial del documento
+:doctype: book
+:lang: es
+:encoding: utf-8
+:toc: left
+:toclevels: 3
+:sectnums:
+:source-highlighter: rouge
+
+:course: Diseño de Software
+:period: Agosto 2025 - Enero 2026
+:repo-url: https://github.com/josxsg/SistemaGestionHotelera.git
+
+[role="cover"]
+.Detalles del Documento
+|===
+| **Curso** | {course}
+| **Período** | {period}
+| **Fecha** | {revdate}
+| **Enlace al Repositorio** | link:{repo-url}[{repo-url}]
+|===
+
+.Historial de Versiones
+[options="header"]
+|===
+| Versión | Fecha | Autor(es) | Resumen de Cambios Significativos
+| 1 | 29/09/25 | Aldo Antonio, José Luis, Angel Jonathan | Creación inicial del documento, contiene los apartados para: Requisitos de Negocio, Declaración de Visión, Alcance, Restricciones y Actores Principales.
+|===
+
+== Contexto y Alcance del Sistema
+
+Establecer el marco del problema de negocio y los límites del sistema. Define qué se va a construir y para quién, creando un lenguaje común para todos los interesados.
+
+=== Visión del Sistema
+
+Este nuevo Sistema de Reservaciones es presentado como una solución de gestión hotelera, estará diseñada de manera que pueda abordar los desafíos relacionados a la operación desorganizada de varias hotelerías. Su visión es transformar el manejo de reservaciones, que actualmente se encuentra caracterizado por inconsistencias y errores debido a las soluciones locales de cada hotel.
+
+Para los clientes, huéspedes, y administrativos, la plataforma centralizada es la respuesta a la gran necesidad de gestionar de manera eficiente y confiable el inventario, las tarifas y las reservaciones en todos los hoteles participantes. El sistema estará diseñado para proporcionar una gran experiencia fluida y confiable al cliente final, de esta manera los huéspedes podrán reservar directamente y en tiempo real.
+
+A nivel administrativo y estratégico, el sistema centralizado es la herramienta fundamental para maximizar la capacidad de venta y los ingresos de la cadena. Proporciona a la administración el control necesario para la gestión de tarifas y políticas, permitiendo la implementación de precios dinámicos y políticas de overbooking del 10% para optimizar la ocupación.
+
+Nuestra solución ofrecerá un único punto de acceso para maniobrar todo el inventario de la cadena, garantizando en primer lugar la consistencia de los datos (lo que prioriza seguridad tanto al usuario final, como a las empresas), y la reducción de errores en el proceso de creación de reservaciones (como dobles cobros, dobles reservas y eliminaciones de reservaciones).
+
+Además, el sistema de reservaciones se centrará en gran parte en la eficiencia operativa, porque este simplificará las operaciones de recepción, permitiendo que el 90% de los recepcionistas novatos puedan completar tareas como el check-in y check-out de manera autónoma en 10 minutos, reduciendo la curva de aprendizaje del personal. Además, la arquitectura del sistema busca seguir una buena trazabilidad de cada transacción, facilitando la auditoría y el control centralizado.
+
+=== Alcance
+
+El proyecto de Sistema de Reservaciones consiste en reemplazar la infraestructura local actual por una plataforma centralizada y robusta, capaz de soportar el crecimiento de la cadena (más de 5,000 hoteles y 1,000,000 de habitaciones).
+
+==== Funcionalidades Principales (Alcance General)
+
+El alcance funcional del sistema en su desarrollo incluye las siguientes capacidades esenciales:
+
+* **Gestión de Reservaciones:** Funcionalidad principal de reservación con pago inmediato (pago completo al reservar) y cancelación de reservas.
+* **Consulta:** Disponibilidad mínima de habitaciones, necesaria para iniciar el flujo de una reservación.
+* **Operaciones de Estancia:** Gestión de la ocupación diaria, incluyendo las tareas de check-in, check-out y cambio de habitación.
+* **Consumos:** Registro de consumos y servicios adicionales proporcionados al huésped (ej. desayunos).
+* **Administración Centralizada:** Permite a los administradores la gestión de precios por día y la configuración de las políticas de overbooking desde un único punto.
+* **Backoffice Básico:** Funcionalidades de altas, bajas y cambios para hoteles, habitaciones, tipos de habitaciones y tarifas.
+
+==== Alcance de la Primera Versión (MVP)
+
+La primera versión del sistema se centrará en el núcleo de la operación, garantizando la funcionalidad mínima viable para la gestión de reservaciones y estancias. El alcance inicial incluye:
+
+. El Flujo Completo de Reserva (Disponibilidad -> Confirmación -> Pago).
+. Las Operaciones Esenciales de Recepción (Check-in y Check-out).
+
+==== Limitaciones y Exclusiones (Futuras Versiones)
+
+Para mantener el enfoque en los objetivos de negocio más críticos (consistencia y eficiencia), las siguientes funcionalidades están expresamente fuera del alcance inicial y se planifican para futuras versiones:
+
+* **Búsquedas Avanzadas:** Filtros avanzados para consulta de disponibilidad y cualquier tipo de motor de recomendaciones.
+* **Integración con Terceros:** Conexión con agencias de viaje en línea (OTAS), sistemas de contabilidad o sistemas de fidelidad (lealtad).
+* **Funciones Operacionales Adicionales:** Funcionalidades como la programación de tareas del personal de housekeeping o la facturación electrónica.
+
+=== Audiencia del Documento
+
+Este Documento de Arquitectura de Software tiene múltiples audiencias (stakeholders) tanto a nivel de negocio como técnico.
+
+.Intereses de los Stakeholders
+[options="header"]
+|===
+| Rol | Interés Principal (Concern)
+
+| Integrantes del equipo de Diseño y Desarrollo
+| Comprender los Impulsores Arquitectónicos (ASRS) para tomar decisiones de diseño que satisfagan las métricas de éxito (latencia, rendimiento, consistencia).
+
+| Administración de la Cadena Hotelera
+| Validar que el sistema permita el Control Centralizado de tarifas y políticas, y que la implementación de overbooking del 10% se ejecute sin causar sobreventa accidental.
+
+| Revisores y Auditores
+| Evaluar la estructura del sistema y asegurar que cumpla con las restricciones de consistencia y Trazabilidad.
+
+| Recepción (Usuarios Finales)
+| Confirmar que el diseño garantice la Facilidad de Operación y la Usabilidad, minimizando la curva de aprendizaje.
+
+| Líderes de Negocio
+| Asegurar que el proyecto esté alineado con la Oportunidad de Negocio (aumento de ingresos y satisfacción del cliente) y que los Riesgos de Negocio (picos de tráfico, curva de aprendizaje) sean mitigados por el diseño.
+|===
+
+Los principales actores que interactúan directamente con el sistema son:
+
+* **Huésped (Web/App):** Realiza acciones de consulta, reserva, pago y cancelación de su estancia.
+* **Recepción (Hotel):** Ejecuta las operaciones de gestión de estancias (check-in, check-out, cambio de habitación) y registro de consumos.
+* **Administración (Cadena/Hotel):** Responsable de la gestión del catálogo de hoteles, precios por día y políticas de overbooking.
+* **Auditoría (Sistema):** Actor que consume los registros del sistema para asegurar la trazabilidad de todas las operaciones.
+
+=== Glosario

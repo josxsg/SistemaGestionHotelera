@@ -1,0 +1,90 @@
+=== Planteamiento del Problema
+
+La cadena hotelera, con una vasta operación que abarca más de 5,000 hoteles y un inventario superior a 1,000,000 de habitaciones, enfrenta un desafío crítico que limita su potencial de crecimiento y eficiencia operativa. La situación actual se caracteriza por una infraestructura tecnológica fragmentada, donde cada hotel depende de una solución local de reservaciones. Este modelo descentralizado ha generado un ecosistema propenso a inconsistencias, errores y una marcada falta de control centralizado, afectando negativamente tanto la experiencia del cliente como la rentabilidad del negocio.
+
+La problemática central se manifiesta en fallos operativos recurrentes que impactan directamente en la confianza del cliente y en los ingresos. Entre los problemas más graves se encuentran las dobles reservas y los dobles cobros, incidentes que el sistema debe eliminar por completo para garantizar la fiabilidad. Además, la heterogeneidad de los sistemas actuales provoca una curva de aprendizaje pronunciada para el personal de recepción, dificultando que los empleados novatos alcancen la autonomía rápidamente y comprometiendo la agilidad en el servicio. La falta de una visión unificada del inventario también impide la implementación de estrategias de precios coherentes, generando desconfianza en el cliente cuando el precio mostrado al inicio de la reserva no coincide con el cobro final. Esta desorganización operativa no solo incrementa los costos, sino que también daña la reputación de la marca.
+
+Más allá de resolver estos problemas operativos, existe una importante oportunidad de negocio sin explotar. La gestión de reservaciones, actualmente vista como un costo operativo, puede transformarse en una poderosa ventaja competitiva. Un sistema unificado permitiría a la administración implementar estrategias avanzadas, como precios dinámicos y políticas de ocupación optimizadas, para maximizar los ingresos. Específicamente, la capacidad de gestionar de forma controlada una política de *overbooking* del 10% por tipo de habitación representa una vía directa para maximizar la capacidad de venta sin riesgo de sobreventa accidental. La centralización del control sobre tarifas y políticas desde un único punto es fundamental para capitalizar esta oportunidad y responder con agilidad a las condiciones del mercado.
+
+Por lo tanto, se justifica la creación de una plataforma de reservaciones centralizada y robusta. Este proyecto no solo busca mitigar los riesgos financieros y operativos inherentes al sistema actual, sino también posicionar a la cadena hotelera para un crecimiento sostenible. La nueva solución abordará la necesidad crítica de consistencia en los datos, reducirá drásticamente los errores en las reservaciones y mejorará la eficiencia operativa. Al unificar el inventario y simplificar los procesos, el sistema no solo mejorará la satisfacción del cliente, sino que se convertirá en una herramienta estratégica para la maximización de ingresos por ocupación, asegurando el liderazgo de la cadena en un mercado competitivo.
+
+== Alcance y Propósito del Diseño
+Este apartado formaliza el alcance, las fronteras y el propósito del diseño arquitectónico para el nuevo Sistema de Reservaciones centralizado. Su objetivo es establecer un entendimiento común entre todos los interesados (stakeholders) sobre los límites del sistema, sus responsabilidades y las metas que se persiguen. Siguiendo la metodología Attribute-Driven Design (ADD), este análisis es el primer paso crucial, ya que las metas de negocio y las preocupaciones de los interesados, aquí descritas, servirán como la entrada principal para identificar y priorizar los impulsores arquitectónicos (Architectural Drivers), especialmente los atributos de calidad que darán forma a la estructura del software.
+
+=== Fronteras del Sistema
+Las fronteras definen qué funcionalidades y responsabilidades pertenecen al sistema a construir y cuáles quedan fuera o son gestionadas por sistemas externos. El diagrama de contexto visualiza estas fronteras, mostrando al Sistema de Reservaciones como el componente central que interactúa con usuarios y sistemas externos, pero que no los incluye.
+
+==== Dentro del Alcance (In-Scope)
+El sistema es responsable de todas las funcionalidades necesarias para la gestión centralizada del ciclo de vida de las reservaciones en los más de 5,000 hoteles de la cadena. El alcance general incluye:
+
+* *Gestión de Reservaciones y Estancias:* Proporciona el flujo completo desde la consulta de disponibilidad hasta la confirmación de la reserva con pago inmediato. También gestiona las operaciones en el hotel, como el check-in, check-out y cambios de habitación.
+* *Gestión de Catálogo y Tarifas (Backoffice):* Ofrece una interfaz para que la administración gestione el inventario de hoteles, habitaciones y sus tipos, así como las tarifas asociadas.
+* *Administración Centralizada de Políticas:* Permite a los administradores configurar de manera centralizada las tarifas diarias y las políticas estratégicas de negocio, como el límite de overbooking del 10%.
+* *Registro de Operaciones:* Incluye el registro de consumos adicionales durante la estancia del huésped (ej. desayunos) y la generación de logs para cada transacción con fines de auditoría.
+
+La primera versión (MVP) se centrará en el núcleo crítico del negocio para acelerar la entrega de valor, abarcando exclusivamente el flujo completo de reserva (disponibilidad -> confirmación -> pago) y las operaciones esenciales de recepción (check-in y check-out).
+
+==== Fuera del Alcance (Out-of-Scope)
+Para mantener el enfoque y la viabilidad del proyecto, las siguientes funcionalidades se excluyen explícitamente del alcance inicial y se consideran para futuras versiones:
+
+* *Búsquedas Avanzadas y Recomendaciones:* No se incluirán filtros de búsqueda complejos ni motores de recomendación personalizados.
+* *Integraciones con Terceros:* Se pospone la integración con agencias de viaje en línea (OTAs), sistemas de contabilidad externos o programas de fidelidad.
+* *Funcionalidades Operativas Extendidas:* Tareas como la programación de personal de limpieza o la facturación electrónica no forman parte del alcance actual.
+
+Además, el sistema dependerá de una pasarela de pagos externa para el procesamiento de transacciones con tarjeta de crédito. Se asume que este es un servicio robusto y fiable, por lo que el diseño se centrará en la correcta integración con dicha pasarela, pero no en la construcción de la lógica de procesamiento de pagos en sí misma.
+
+=== Identificación y Análisis de Interesados (Stakeholders)
+Los interesados son individuos o grupos cuyo éxito está ligado al del sistema. Sus preocupaciones y objetivos son la fuente principal de los requisitos de calidad que guiarán el diseño.
+
+==== Huésped (Usuario Final)
+Es el cliente que interactúa con el sistema a través de la web o la aplicación móvil oficial de la cadena.
+
+*Preocupaciones (Concerns):*
+
+* *Confianza y Fiabilidad:* Su mayor preocupación es la certeza de que su reserva es segura. El sistema debe ofrecer una garantía absoluta de que no ocurrirán dobles reservas ni dobles cobros, incluso bajo alta demanda. Un fallo en este aspecto erosiona la confianza en la marca de forma irreparable.
+* *Consistencia de Precios:* El precio mostrado al inicio de la consulta debe ser exactamente el mismo que se cobra al finalizar la transacción. Cualquier discrepancia genera desconfianza y abandono de la reserva.
+* *Experiencia de Usuario (UX):* El proceso de reserva debe ser rápido, intuitivo y con un mínimo de pasos (no más de 5). Los mensajes de error deben ser claros y guiar al usuario hacia una solución.
+* *Privacidad y Seguridad:* Esperan que su información personal y sus datos de pago sean manejados con la máxima seguridad, cumpliendo con todas las regulaciones de protección de datos vigentes.
+
+==== Personal de Recepción (Usuario Operativo)
+Son los empleados del hotel que utilizan el sistema diariamente para gestionar la estancia de los huéspedes.
+
+*Preocupaciones (Concerns):*
+
+* *Facilidad de Uso y Eficiencia:* El sistema debe ser extremadamente intuitivo para minimizar la curva de aprendizaje. Un recepcionista novato debe ser capaz de realizar tareas clave (check-in/out) de manera autónoma tras solo 10 minutos de instrucción. Esto es crítico para mantener la eficiencia operativa durante la rotación de personal.
+* *Rendimiento y Responsividad:* Las consultas de disponibilidad y el acceso a los datos de una reserva deben ser casi instantáneos para no hacer esperar a los huéspedes en el mostrador. El sistema debe funcionar de manera fluida incluso en equipos de cómputo con recursos modestos.
+
+==== Administración de la Cadena Hotelera (Usuario Estratégico)
+Incluye a los gerentes de hotel y a los administradores a nivel de cadena que gestionan el catálogo, los precios y las políticas.
+
+*Preocupaciones (Concerns):*
+
+* *Control Centralizado:* Necesitan la capacidad de modificar tarifas y políticas de overbooking desde un único punto y que estos cambios se reflejen en tiempo real en todos los canales. Esto es fundamental para la agilidad estratégica del negocio.
+* *Maximización de Ingresos:* El sistema no es solo una herramienta operativa, sino un motor de ingresos. Debe implementar de forma fiable la política de overbooking del 10% para maximizar la ocupación sin causar sobreventas accidentales.
+* *Visibilidad Operativa:* Requieren acceso a reportes consolidados (ocupación, ingresos, etc.) para tomar decisiones de negocio informadas.
+
+==== Auditores (Rol de Supervisión)
+Son responsables de asegurar la integridad y trazabilidad de las operaciones financieras y de inventario.
+
+*Preocupaciones (Concerns):*
+
+* *Trazabilidad Completa:* Cada transacción (reserva, pago, cancelación, check-in) debe ser rastreable de principio a fin. El sistema debe generar registros detallados (logs) que permitan reconstruir cualquier operación en caso de una discrepancia. La integridad de estos registros es primordial.
+* *Consistencia de Datos:* El sistema debe garantizar la consistencia transaccional, especialmente en las operaciones de reserva y pago, para lo cual se ha restringido el uso a una base de datos RDBMS.
+
+==== Equipo de Diseño y Desarrollo (Rol Técnico)
+El equipo encargado de construir, mantener y evolucionar el sistema.
+
+*Preocupaciones (Concerns):*
+
+* *Cumplimiento de Atributos de Calidad:* Su principal preocupación es cómo diseñar una arquitectura que satisfaga las exigentes métricas de rendimiento (latencia P95 <= 2.5s en confirmaciones, P95 <= 500ms en consultas) y disponibilidad bajo cargas de trabajo específicas (3 TPS, 300 QPS).
+* *Mantenibilidad y Evolucionabilidad:* El sistema debe ser modular y con bajo acoplamiento para facilitar la corrección de errores y, fundamentalmente, para permitir la incorporación de futuras funcionalidades (como la integración con OTAs) sin necesidad de rediseños masivos.
+* *Manejo de la Concurrencia:* Un desafío técnico clave será diseñar un mecanismo de bloqueo o gestión de inventario que evite las condiciones de carrera (race conditions) que llevan a dobles reservas cuando múltiples usuarios intentan reservar la última habitación disponible simultáneamente.
+
+==== Líderes de Negocio (Rol de Patrocinio)
+Los directivos que patrocinan el proyecto y esperan un retorno de la inversión.
+
+*Preocupaciones (Concerns):*
+
+* *Alineación Estratégica:* El sistema debe cumplir su visión de transformar la gestión de reservaciones de un costo operativo a una ventaja competitiva.
+* *Mitigación de Riesgos:* La arquitectura debe ser resiliente y capaz de manejar picos de tráfico no previstos, degradando el servicio de manera controlada en lugar de fallar por completo.
+* *Coste Total de Propiedad (TCO):* Se preocupan por los costos a largo plazo de mantener y operar la solución, por lo que la eficiencia y la escalabilidad del sistema son importantes.
