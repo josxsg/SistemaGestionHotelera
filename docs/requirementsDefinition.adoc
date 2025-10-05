@@ -24,7 +24,7 @@ Este apartado formaliza el alcance, las fronteras y el propósito del diseño ar
 
 ==== 2.2.1 Diagrama de Contexto del Sistema
 
-image::docs/img/contextDiagram/diagramaContexto.jpg[Diagrama de Contexto]
+image::docs/img/contextDiagram/diagramaContexto.jpg[Diagrama de Contexto, width=800]
 
 === 2.2.2 Fronteras del Sistema
 Las fronteras definen qué funcionalidades y responsabilidades pertenecen al sistema a construir y cuáles quedan fuera o son gestionadas por sistemas externos. El diagrama de contexto visualiza estas fronteras, mostrando al Sistema de Reservaciones como el componente central que interactúa con usuarios y sistemas externos, pero que no los incluye.

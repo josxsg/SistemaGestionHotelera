@@ -1,0 +1,125 @@
+= Impulsores arquitectónicos (ASRs) y Priorización.
+:doctype: book
+:lang: es
+:encoding: utf-8
+:toclevels: 3
+:sectnums:
+
+=== 3.1 Utility tree
+image::docs/img/utilityTree/utilityTree.jpg[Utility Tree, width=800]
+
+=== 3.2 Escenarios de Atributos de Calidad
+
+A continuación, se detallan los escenarios prioritarios que servirán como criterio para evaluar el diseño arquitectónico. Cada escenario se describe utilizando el formato de 6 partes para asegurar que sea específico, medible y realista.
+
+==== Confiabilidad
+
+* *Definición:* El grado en que un sistema, producto o componente puede realizar las funciones especificadas bajo condiciones determinadas durante un período de tiempo especificado.
+* *Importancia para el sistema:* Es el atributo más crítico. El objetivo principal del proyecto es eliminar por completo los incidentes de dobles reservas y dobles cobros que dañan la reputación de la marca y generan pérdidas financieras.
+
+.Escenario de Confiabilidad (CF-01): Gestión de concurrencia
+[cols="1,3"]
+|===
+| Parte del Escenario | Descripción
+
+| Fuente del estímulo
+| Múltiples huéspedes externos.
+
+| Estímulo
+| 50 usuarios intentan reservar simultáneamente la última habitación de tipo "Suite" disponible para las mismas fechas durante un pico de demanda.
+
+| Entorno
+| El sistema opera bajo una carga pico cercana a 10 TPS.
+
+| Artefacto
+| El módulo de gestión de inventario y el procesador de transacciones de reservación.
+
+| Respuesta
+| El sistema debe asegurar que solo una de las 50 solicitudes sea exitosa, procesando su pago y confirmando la reserva. Las 49 restantes deben ser rechazadas con un mensaje claro de "no disponibilidad".
+
+| Medida de Respuesta
+| La tasa de incidentes de dobles reservas debe ser del 0%. El 100% de las transacciones fallidas no deben generar ningún cargo al cliente.
+|===
+
+.Escenario de Confiabilidad (CF-02): Transacción idempotente
+[cols="1,3"]
+|===
+| Parte del Escenario | Descripción
+
+| Fuente del estímulo
+| Un huésped externo.
+
+| Estímulo
+| Un huésped, debido a una red lenta, hace clic repetidamente en el botón "Confirmar Pago", enviando tres solicitudes idénticas para la misma reserva en 5 segundos.
+
+| Entorno
+| El sistema está en operación normal, pero la conexión del cliente es inestable.
+
+| Artefacto
+| El módulo de procesamiento de pagos y el de confirmación de reservas.
+
+| Respuesta
+| El sistema debe procesar el cobro de la primera solicitud y confirmar la reserva. Las dos solicitudes siguientes deben ser identificadas como duplicados de una transacción ya completada y ser rechazadas sin intentar un nuevo cobro.
+
+| Medida de Respuesta
+| La operación de pago debe ejecutarse exactamente una vez. La tasa de dobles cobros por solicitudes duplicadas debe ser del 0%.
+|===
+
+==== Disponibilidad
+
+* *Definición:* El grado en que un sistema, producto o componente es operacional y accesible para su uso cuando se requiere.
+* *Importancia para el sistema:* El negocio hotelero opera 24/7, y cualquier caída del sistema se traduce directamente en pérdida de ingresos y daño a la reputación, especialmente porque se busca reemplazar soluciones locales propensas a fallos.
+
+.Escenario de Disponibilidad (DA-01): Falla de componente interno
+[cols="1,3"]
+|===
+| Parte del Escenario | Descripción
+
+| Fuente del estímulo
+| Un componente interno del sistema.
+
+| Estímulo
+| El servidor de la base de datos principal sufre una falla imprevista y deja de responder.
+
+| Entorno
+| El sistema está en operación normal durante un día de alta demanda.
+
+| Artefacto
+| El módulo de reservaciones y la base de datos.
+
+| Respuesta
+| El sistema debe detectar la falla y redirigir automáticamente el tráfico a una base de datos secundaria replicada. Las transacciones en curso deben ser revertidas (rollback) para evitar inconsistencias.
+
+| Medida de Respuesta
+| El sistema debe estar completamente operacional, usando la base de datos secundaria, en menos de 5 minutos.
+|===
+
+==== Rendimiento
+
+* *Definición:* El rendimiento relativo a la cantidad de recursos utilizados bajo condiciones determinadas.
+* *Importancia para el sistema:* Un sistema lento afecta la experiencia del cliente (riesgo de abandono de reserva) y la eficiencia del personal de recepción (filas en el mostrador). Las métricas de latencia son un objetivo de negocio explícito.
+
+.Escenario de Rendimiento (RE-02): Confirmación de reserva
+[cols="1,3"]
+|===
+| Parte del Escenario | Descripción
+
+| Fuente del estímulo
+| Un alto volumen de huéspedes externos.
+
+| Estímulo
+| El sistema experimenta ráfagas de hasta 10 transacciones de confirmación por segundo (TPS) durante la hora pico.
+
+| Entorno
+| El sistema se encuentra bajo carga máxima sostenida.
+
+| Artefacto
+| El flujo completo de reservación (retención de inventario, pago, actualización de BD).
+
+| Respuesta
+| El sistema procesa cada transacción, interactúa con la pasarela de pagos, actualiza el inventario y genera la confirmación para el huésped.
+
+| Medida de Respuesta
+| El tiempo total de confirmación debe ser P95 <= 2.5 segundos y P99 <= 4.0 segundos.
+|===
+
