@@ -71,7 +71,7 @@ A continuación, se detallan los interesados y sus preocupaciones clave, que son
 == 2.3 Diagramas de Casos de Uso
 Los siguientes diagramas detallan las funcionalidades principales del sistema, agrupadas por los módulos de negocio más importantes que interactúan con los actores clave (Huésped, Recepcionista, Administrador y Auditor).
 
-==== Gestión de Cuentas y Políticas
+=== Gestión de Cuentas y Políticas
 
 image::img/UCDiagrams/Administración de Cuentas de Personal.jpg[Diagrama CU: Administración de Cuentas de Personal, width=600]
 
