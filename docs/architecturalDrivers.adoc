@@ -127,3 +127,34 @@ A continuación, se detallan los escenarios prioritarios que servirán como crit
 | Medida de Respuesta
 | El tiempo total de confirmación debe ser P95 <= 2.5 segundos y P99 <= 4.0 segundos.
 |===
+
+== Restricciones y preocupaciones
+
+A continuación se documentan dos tipos de influencias en el diseño que limitan el espacio de soluciones posibles: las *Restricciones* (decisiones inamovibles) y las *Preocupaciones* (objetivos que guían el diseño).
+
+=== Lista de Restricciones
+
+[options="header"]
+|===
+| ID | Restricción | Origen
+
+| CON-1
+| Se debe utilizar un RDBMS para las transacciones de reserva y pago para asegurar la consistencia.
+| Técnico
+
+| CON-2
+| La solución solo se implementará para la web y la aplicación móvil oficial de la cadena.
+| Negocio
+
+| CON-3
+| El modelo de negocio exige el pago completo de la estancia al momento de reservar.
+| Negocio
+
+| CON-4
+| Se debe implementar una política de overbooking del 10% por tipo de habitación y fecha.
+| Negocio
+
+| CON-5
+| El sistema se integrará con una pasarela de pago externa y no construirá su propia lógica de procesamiento de pagos.
+| Técnico/Negocio
+|===
