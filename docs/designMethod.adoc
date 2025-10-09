@@ -1,0 +1,59 @@
+= Proceso de Diseño Arquitectónico para el Sistema de Gestión Hotelera
+
+El diseño de la arquitectura del Sistema de Gestión Hotelera fue un proceso sistemático y racional, guiado por la metodología Attribute-Driven Design (ADD) y complementado por el proceso de especificación Component-Based Software Engineering (CBSE) de Cheesman & Daniels. Este enfoque aseguró que cada decisión arquitectónica respondiera directamente a los impulsores de negocio y a los requisitos de calidad críticos (Quality Attributes Scenarios - QAS), evitando cualquier arbitrio y garantizando la construcción de una solución robusta y alineada con los objetivos estratégicos.
+
+== 1. Attribute-Driven Design (ADD)
+
+ADD es un método iterativo que enfoca el diseño arquitectónico en la satisfacción de los requisitos de calidad del sistema. En lugar de comenzar con componentes o módulos, ADD arranca con los impulsores arquitectónicos clave, que para nuestro sistema de gestión hotelera, son los atributos de calidad (Confiabilidad, Disponibilidad, Rendimiento, Usabilidad, Seguridad) identificados previamente y sus escenarios específicos (QAS).
+
+=== 1.1. Backlog de Impulsores (Drivers Arquitectónicos)
+
+El primer paso consistió en formalizar el backlog de impulsores, que son los requisitos de calidad que el sistema debe satisfacer. Estos se priorizaron en función de su impacto en el negocio y su criticidad:
+
+* **Confiabilidad:** Evitar dobles reservas y dobles cobros (0% de incidentes). Idempotencia en transacciones de pago.
+* **Disponibilidad:** Operación 24/7. Recuperación de fallos de la base de datos principal en < 5 minutos.
+* **Rendimiento:**
+** Consultas de disponibilidad: 500 req/s, P95 <= 500ms
+** Confirmaciones de reserva: 10 req/s, P95 <= 2.5s.
+* **Usabilidad:**
+** Check-in para recepcionista novato en < 10 minutos de instrucción.
+** Flujo de reserva para huésped en < 5 pasos.
+* **Seguridad:** Control de acceso basado en roles. Prevenir acceso no autorizado por manipulación de URL.
+* **Trazabilidad:** Registro detallado de todas las transacciones para auditoría.
+
+Este backlog fue la guía inquebrantable para cada decisión arquitectónica tomada.
+
+=== 1.2. Iteraciones de Diseño y Decisiones Arquitectónicas
+
+El diseño del Sistema de Gestión Hotelera se abordó a través de múltiples iteraciones, cada una con un objetivo claro: abordar uno o más impulsores del backlog mediante la aplicación de tácticas y patrones arquitectónicos específicos. Las decisiones se registraron de forma explícita, mostrando cómo cada elección respondía a un driver.
+
+==== Iteración 1: Abordando Confiabilidad y Trazabilidad
+
+* **Objetivo de la Iteración:** Garantizar la integridad transaccional (evitar dobles reservas y dobles cobros) y establecer un mecanismo para el registro de todas las operaciones.
+* **Decisiones Tomadas (Tácticas/Patrones):**
+** **Transacciones Atómicas y Distribuídas:** Se optó por un enfoque de transacciones atómicas en los servicios críticos (reservas, pagos). Para garantizar la consistencia en un entorno potencialmente distribuido, se consideró el patrón Saga para orquestar flujos de trabajo complejos, asegurando que todas las etapas de una reserva se completen o se reviertan de manera coordinada.
+** **Manejo de Concurrencia (Bloqueo Optimista/Pesimista):** Para evitar dobles reservas, se implementó un mecanismo de bloqueo optimista en la gestión de disponibilidad de habitaciones. Antes de confirmar una reserva, se verifica que la versión del recurso (habitación) no haya cambiado desde que se realizó la consulta inicial. Si ha cambiado, se notifica al usuario para reintentar. Para operaciones de alta criticidad, donde la concurrencia es extrema, se utilizará un bloqueo pesimista a nivel de base de datos para asegurar exclusividad durante la modificación de estados clave.
+** **Idempotencia en Pagos:** Se implementó una lógica a nivel de servicio de pagos para asegurar que una solicitud de pago idéntica, sentida múltiples veces, solo resulte en una única transacción de cobro real. Esto se logra mediante la generación y almacenamiento de un ID de idempotencia para cada solicitud.
+** **Registro de Eventos (Event Sourcing):** Para cumplir con la trazabilidad y la auditabilidad, se decidió implementar un patrón de Event Sourcing para las entidades críticas (Reservas, Pagos, Estancias). Esto implica que cada cambio de estado se registra como un evento inmutable, permitiendo reconstruir el estado en cualquier momento y proporcionando un historial completo para auditorías.
+* **Drivers Atendidos:** Confiabilidad (totalmente), Trazabilidad (parcialmente, mecanismo base establecido).
+* **Criterio de Suficiente:** Las transacciones atómicas, la lógica de concurrencia y la idempotencia de pagos se diseñaron para un 0% de errores de doble reserva/cobro. El Event Sourcing garantiza el historial de auditoría.
+
+==== Iteración 2: Abordando Disponibilidad y Rendimiento
+
+* **Objetivo de la Iteración:** Asegurar la operación continua del sistema (24/7) y optimizar el rendimiento de las consultas de disponibilidad.
+* **Decisiones Tomadas (Tácticas/Patrones):**
+** **Replicación de Base de Datos:** Para la disponibilidad 24/7 y la recuperación ante fallos de la base de datos principal, se implementó una replicación activa-pasiva (o activa-activa si el presupuesto lo permite en fases posteriores) en el almacén de datos primario. En caso de caída del nodo principal, el tráfico se redirigiría automáticamente a una réplica. Se definió un RTO (Recovery Time Objective) de < 5 minutos.
+** **Patrón CQRS (Command Query Responsibility Segregation):** Para optimizar el rendimiento de las consultas de disponibilidad (500 req/s, P95 <= 500ms), se adoptó el patrón CQRS. Esto implica separar las operaciones de escritura (comandos) de las operaciones de lectura (consultas). Las consultas de disponibilidad se servirán desde una base de datos optimizada para lectura (posiblemente una réplica del Event Store o una vista materializada de los datos de disponibilidad), desacoplada de la base de datos transaccional de escritura. Esto permite escalar independientemente los subsistemas de lectura y escritura.
+** **Mecanismos de Caching (Caché Distribuida):** Para reducir la carga en la base de datos y mejorar aún más la latencia de las consultas de disponibilidad, se implementó un caché distribuido (ej. Redis). Los resultados de las consultas de disponibilidad frecuentes se almacenarán en caché con una política de expiración adecuada.
+* **Drivers Atendidos:** Disponibilidad (totalmente), Rendimiento (consultas de disponibilidad totalmente).
+* **Criterio de Suficiente:** La replicación de DB y el failover automático garantizan un RTO de < 5 minutos. CQRS y el caching están diseñados para cumplir las metas de 500 req/s y P95 <= 500ms para consultas.
+
+==== Iteración 3: Abordando Rendimiento y Usabilidad
+
+* **Objetivo de la Iteración:** Optimizar el rendimiento de las confirmaciones de reserva y mejorar la experiencia de usuario para recepcionistas y huéspedes.
+* **Decisiones Tomadas (Tácticas/Patrones):**
+** **Procesamiento Asíncrono de Confirmaciones (Colas de Mensajes):** Para manejar las ráfagas de 10 confirmaciones por segundo y mantener una latencia P95 <= 2.5s, las confirmaciones de reserva se gestionarán de forma asíncrona mediante colas de mensajes. El usuario recibirá una confirmación inicial (la solicitud ha sido recibida) y el procesamiento real se realizará por workers en segundo plano, liberando al hilo de solicitud rápidamente. Esto permite absorber picos de carga.
+** **Arquitectura de Microservicios para UI:** Para la usabilidad, se optó por una interfaz de usuario modular. Aunque la arquitectura backend sea de microservicios, la UI para recepcionistas podría seguir un enfoque de micro-frontends o al menos componentes reutilizables, permitiendo un desarrollo ágil y una experiencia de usuario consistente e intuitiva. El diseño se centrará en flujos de trabajo claros y minimalistas.
+** **APIs Orientadas a Tareas:** En lugar de APIs CRUD genéricas, se diseñaron APIs específicas para las tareas clave (ej. `realizarCheckin()`, `confirmarReserva()`). Esto simplifica la lógica del cliente y reduce el número de pasos necesarios, mejorando la usabilidad.
+* **Drivers Atendidos:** Rendimiento (confirmaciones de reserva totalmente), Usabilidad (parcialmente, la base del diseño de la UI).
+* **Criterio de Suficiente:** El procesamiento asíncrono y las colas están dimensionadas para la meta de 10 req/s con P95 <= 2.5s. El diseño de la UI y las APIs orientadas a tareas están alineadas para cumplir los objetivos de < 10 minutos de instrucción y < 5 pasos para reserva.
