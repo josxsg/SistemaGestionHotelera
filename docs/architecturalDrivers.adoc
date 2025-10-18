@@ -158,3 +158,38 @@ A continuación se documentan dos tipos de influencias en el diseño que limitan
 | El sistema se integrará con una pasarela de pago externa y no construirá su propia lógica de procesamiento de pagos.
 | Técnico/Negocio
 |===
+
+=== Lista de Preocupaciones (Concerns)
+
+[options="header"]
+|===
+| ID | Preocupación | Descripción del Objetivo
+
+| CRN-1
+| Gestión de inventario bajo concurrencia
+| Garantizar que el sistema evite dobles reservas cuando múltiples clientes intentan reservar la misma habitación simultáneamente.
+
+| CRN-2
+| Idempotencia en transacciones
+| Asegurar que un pago o confirmación se procese una sola vez, sin importar si la solicitud se repite por error, para evitar dobles cobros.
+
+| CRN-3
+| Manejo de picos de demanda
+| Diseñar el sistema para manejar aumentos inesperados de tráfico de manera controlada, evitando caídas y degradando el servicio de forma predecible.
+
+| CRN-4
+| Coherencia de precios
+| Asegurar que el precio mostrado al cliente al iniciar la reserva sea exactamente el mismo que se le cobra al finalizar la transacción.
+
+| CRN-5
+| Trazabilidad y Observabilidad
+| El sistema debe generar registros detallados y métricas para rastrear cada transacción, permitiendo la auditoría y el monitoreo del rendimiento.
+
+| CRN-6
+| Facilidad de operación
+| La solución debe ser intuitiva y fácil de usar para minimizar la curva de aprendizaje del personal de recepción.
+
+| CRN-7
+| Privacidad de la información
+| El sistema debe cumplir con las regulaciones locales, protegiendo los datos personales y de pago del cliente en todo momento.
+|===
