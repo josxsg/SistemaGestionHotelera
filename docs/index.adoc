@@ -22,6 +22,9 @@
 include::introduction.adoc[]
 include::requirementsDefinition.adoc[]
 include::architecturalDrivers.adoc[]
+include::designMethod.adoc[]
+include::logicalView.adoc[]
+include::businessConceptModel.adoc[]
 
 // include::stakeholders.adoc[]
 // include::views/context.adoc[]
