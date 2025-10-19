@@ -1,0 +1,4 @@
+= Modelo de conceptos de negocio
+
+.Diagrama de conceptos de negocio
+image::img/conceptModel/conceptModelDiagram.jpg[Conceptos de negocio, width=800]
