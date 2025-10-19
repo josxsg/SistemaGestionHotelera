@@ -28,8 +28,9 @@
 [options="header"]
 |===
 | Versión | Fecha | Autor(es) | Resumen de Cambios Significativos
-| 1 | 29/09/25 | Aldo Antonio, José Luis, Ángel Jonathan | Creación inicial del documento, contiene los apartados para: Requisitos de Negocio, Declaración de Visión, Alcance, Restricciones y Actores Principales.
-| 2 | 05/10/25 | Aldo Antonio, José Luis, Ángel Jonathan | Actualización de diagramas de casos de uso, descripciones de casos de uso, utility tree y los escenarios de atributos de calidad.
+| 1 | 29/09/25 | Aldo Antonio, José Luis, Ángel Jonathan | [cite_start]Creación inicial del documento, contiene los apartados para: Requisitos de Negocio, Declaración de Visión, Alcance, Restricciones y Actores Principales. [cite: 5714]
+| 2 | 05/10/25 | Aldo Antonio, José Luis, Ángel Jonathan | [cite_start]Actualización de diagramas de casos de uso, descripciones de casos de uso, utility tree y los escenarios de atributos de calidad. [cite: 5714]
+| 3 | 18/10/25 | Aldo Antonio, José Luis, Ángel Jonathan | Se añadieron las secciones de *Restricciones y Preocupaciones*, *Método de Diseño* (ADD/CBSE), y las vistas de *Modelo de Conceptos* y *Lógica*.
 |===
 
 == 1. Contexto y Alcance del Sistema
