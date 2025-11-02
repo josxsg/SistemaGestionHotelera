@@ -64,15 +64,17 @@ image::img/logicalView/logical_view.png[Vista Lógica, width=800]
 *Contenido:* Implementaciones de los repositorios definidos en el Dominio (usando el RDBMS que exige CON-1), clientes para APIs externas (como la pasarela de pago de CON-5), y servicios de logging (para CRN-5).
 *Justificación (Driver -> Táctica):* Satisface la Mantenibilidad y las Restricciones (CON-1, CON-5) mediante la Inversión de Dependencias. Si se cambia de proveedor de pagos, los cambios se limitan a esta capa.
 
-=== Diagrama de Objetos: Flujo de Confirmación de Reserva
+== 5.2 Modelo de Conceptos de Negocio
 
-Para clarificar cómo colaboran los elementos de las distintas capas, a continuación se presenta un diagrama de objetos que muestra una "instantánea" de las interacciones durante el proceso de confirmación de una reserva (CU-02 y CU-03).
+El Modelo de Conceptos de Negocio (también conocido como Modelo de Dominio) es un artefacto central en la Vista Lógica. Su objetivo principal es clarificar y definir las entidades fundamentales del dominio del problema, sus responsabilidades conceptuales y las relaciones estáticas que guardan entre sí.
 
-.Diagrama de Objetos - Confirmación de Reserva
-image::img/logicalView/object_diagram_booking.png[Diagrama de Objetos, width=800]
+Este modelo sirve como un vocabulario común y unificado para todos los stakeholders, asegurando que tanto el equipo de desarrollo como los expertos de negocio compartan el mismo entendimiento de los conceptos clave.
 
-==== Explicación del Flujo de Interacción:
-1.  **Entrada (`:BookingController`)**: Un actor envía una solicitud HTTP. Un objeto `BookingController` en la **Capa de Presentación** la recibe.
-2.  **Orquestación (`:BookingApplicationService`)**: El controlador invoca al `BookingApplicationService` en la **Capa de Aplicación** para orquestar el caso de uso.
-3.  **Lógica de Dominio (`:Reservation`, `:RoomType`)**: El servicio de aplicación utiliza los objetos del **Dominio** para verificar la disponibilidad y aplicar las reglas de negocio, creando una instancia de `Reservation`.
-4.  **Infraestructura (`:PaymentGatewayClient`, `:ReservationRepository`)**: El servicio de aplicación utiliza objetos de la **Capa de Infraestructura** para procesar el pago y guardar la reserva en la base de datos.
+Según la metodología definida (ADD + CBSE), este modelo es la fuente de verdad para la identificación de componentes (Hito 3), ya que establece las entidades de negocio que los componentes de lógica de negocio deberán gestionar y orquestar. El modelo se mantiene puramente conceptual, omitiendo detalles de implementación, métodos o tecnología (como bases de datos o controladores), para enfocarse exclusivamente en las reglas y estructura del negocio hotelero.
+
+=== 5.2.1 Diagrama de Clases Conceptual
+
+El siguiente diagrama de clases UML representa los conceptos clave del dominio del Sistema de Gestión Hotelera.
+
+image::img/conceptModel/conceptModelDiagram.jpg[Diagrama de clases conceptual, width=800]
+
