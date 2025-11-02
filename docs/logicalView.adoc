@@ -1,35 +1,68 @@
-== Vista Lógica
+== 5.1 Vista Lógica
 
-Esta vista describe la estructura estática del sistema, su descomposición en elementos lógicos principales y la asignación de responsabilidades funcionales. El objetivo es mostrar cómo la organización del código fuente satisface los impulsores arquitectónicos clave, especialmente la confiabilidad, el rendimiento y la mantenibilidad.
+La Vista Lógica describe la estructura estática del sistema, su descomposición en elementos lógicos principales y la asignación de responsabilidades funcionales. Su propósito es ilustrar cómo la organización del código fuente satisface los impulsores arquitectónicos clave, en particular la Confiabilidad y la Mantenibilidad.
 
-=== Estilo Arquitectónico: Arquitectura en Capas con un Núcleo de Dominio
+=== 5.1.1 Justificación del Estilo Arquitectónico
 
-Para satisfacer los impulsores del sistema, se ha seleccionado un estilo de **Arquitectura en Capas (Layered Architecture)**. Este estilo organiza el sistema en capas horizontales, donde cada una tiene una responsabilidad específica y solo puede comunicarse con la capa inmediatamente inferior. Esta decisión de diseño promueve una fuerte **separación de preocupaciones**, que es fundamental para la **mantenibilidad** a largo plazo.
+Se ha seleccionado una Arquitectura en Capas con un núcleo modelado mediante Domain-Driven Design (DDD). Esta decisión responde directamente a los impulsores más críticos del proyecto.
 
-Dentro de este estilo, el corazón del sistema se modela siguiendo los principios de **Domain-Driven Design (DDD)**, aislando la lógica de negocio compleja en un Núcleo de Dominio explícito.
+*Drivers (Impulsores):*
+* *Confiabilidad (Driver Principal):* La necesidad de eliminar al 100% las dobles reservas (CF-01) y los dobles cobros (CF-02). Esto exige que la lógica de negocio más compleja sea correcta, robusta y, sobre todo, testeable de forma aislada.
+* *Mantenibilidad (Preocupación CRN-1, CRN-6):* El sistema evolucionará (versiones futuras) y debe ser fácil de entender y modificar por diferentes equipos sin introducir errores.
+* *Restricciones:* El sistema debe usar un RDBMS para transacciones (CON-1) e integrarse con una pasarela de pago externa (CON-5).
 
-.Diagrama de Paquetes - Vista Lógica
+*Tácticas (Estrategia de Diseño):*
+* *Separación de Preocupaciones (Separation of Concerns):* Descomponer el sistema para que cada parte tenga una única responsabilidad (ej. UI vs. Lógica de Negocio vs. Acceso a Datos).
+* *Aislamiento del Núcleo (Isolate Core):* Proteger la lógica de negocio crítica (reglas de concurrencia, políticas de overbooking) de las dependencias externas (UI, BD, APIs).
+* *Ocultamiento de Información (Information Hiding):* Ocultar los detalles de implementación (ej. cómo se guarda en PostgreSQL o cómo funciona la API de pagos) detrás de abstracciones (interfaces).
+
+*Patrones/Decisiones (Implementación):*
+* *Patrón de Arquitectura en Capas (Layered Architecture):* Se define una arquitectura de 4 capas estrictas: Presentación, Aplicación, Dominio e Infraestructura. La regla de dependencia es estricta: una capa solo puede comunicarse con la capa inmediatamente inferior.
+* *Patrón de Diseño de Dominio (Domain-Driven Design - DDD):* La Capa de Dominio se trata como el "núcleo". Contiene la lógica y el estado del negocio, modelados como Agregados y Entidades (ej. Reservation, Stay, RoomType).
+* *Patrón de Inversión de Dependencias (DIP):* Para cumplir con el aislamiento, el Dominio define las interfaces que necesita (ej. IReservationRepository, IPaymentGateway). La Capa de Infraestructura implementa esas interfaces. Esto asegura que el Dominio (el núcleo) no dependa de la Infraestructura, satisfaciendo la restricción (CON-1) sin acoplarse a ella.
+
+*Trade-offs (Consecuencias):*
+* *(Positivo) Alta Confiabilidad y Testeabilidad:* Al aislar la lógica de negocio en el Dominio (sin dependencias de UI o BD), podemos probar unitariamente las reglas de concurrencia (CF-01) y las políticas de negocio, garantizando la corrección.
+* *(Positivo) Alta Mantenibilidad:* Es fácil cambiar la base de datos (CON-1) o la pasarela de pagos (CON-5) modificando solo la Capa de Infraestructura, sin tocar la lógica de negocio.
+* *(Negativo) Sobrecarga de Código (Boilerplate):* Este estilo requiere más clases y mapeo de datos entre capas (ej. DTOs en Presentación vs. Entidades en Dominio), lo que incrementa la complejidad inicial del código.
+* *(Negativo) Latencia Potencial:* Una solicitud debe atravesar múltiples capas, añadiendo una pequeña sobrecarga de rendimiento. Este trade-off es aceptable porque la Confiabilidad (CF-01, CF-02) es el atributo más crítico del sistema.
+
+=== 5.1.2 Diagrama de Paquetes (Vista Lógica)
+
+El siguiente diagrama muestra la descomposición en las cuatro capas principales y los módulos de dominio refinados, que reflejan mejor la funcionalidad descrita en los casos de uso.
+
 image::img/logicalView/logical_view.png[Vista Lógica, width=800]
 
-=== Descripción de los Paquetes Lógicos
+=== 5.1.3 Descripción de los Paquetes Lógicos (Capas)
 
-El sistema se descompone en las siguientes cuatro capas principales:
+. *Presentation Layer (Capa de Presentación)*
++
+*Responsabilidad:* Gestionar toda la interacción con los actores del sistema (Huéspedes, Personal de Recepción, etc.). Es el punto de entrada para todas las solicitudes, exponiendo una API REST.
+*Contenido:* Controladores (Controllers), Modelos de Vista (DTOs - Data Transfer Objects).
+*Justificación (Driver -> Táctica):* El driver de Mantenibilidad se satisface con la táctica de Separación de Preocupaciones. Esta capa aísla la tecnología de la API (HTTP, JSON) del resto del sistema.
 
-==== Presentation Layer (Capa de Presentación)
-Responsabilidad: Gestionar toda la interacción con los actores del sistema. Es el punto de entrada para todas las solicitudes de usuario.
-* **Contribución a la Calidad:** Al aislar la tecnología de la interfaz del resto del sistema, esta capa potencia la **mantenibilidad**.
+. *Application Layer (Capa de Aplicación)*
++
+*Responsabilidad:* Orquestar los casos de uso del sistema. No contiene lógica de negocio, sino que actúa como un coordinador: recibe solicitudes de Presentación, invoca los objetos del Dominio para ejecutar la tarea y utiliza la Infraestructura para la persistencia y otras operaciones de I/O. También es responsable de manejar las transacciones (ej. begin, commit, rollback).
+*Contenido:* Servicios de Aplicación (ej. BookingApplicationService para CU-02, StayApplicationService para CU-08).
+*Justificación (Driver -> Táctica):* Satisface la Mantenibilidad al aplicar Separación de Preocupaciones, manteniendo los controladores delgados y la lógica de orquestación fuera del Dominio.
 
-==== Application Layer (Capa de Aplicación)
-Responsabilidad: Orquestar los casos de uso del sistema. No contiene lógica de negocio, sino que actúa como un coordinador.
-* **Contribución a la Calidad:** Mantiene los controladores "delgados" y centraliza los flujos de trabajo, mejorando la **mantenibilidad**.
+. *Domain Layer (Capa de Dominio)*
++
+*Responsabilidad:* Contener toda la lógica, reglas y estado del negocio. Este es el corazón del software y es independiente de cualquier otra capa. Aquí se implementa la lógica crítica para evitar dobles reservas (CF-01), aplicar la política de overbooking (CON-4) y asegurar la coherencia de precios (CRN-4).
+*Contenido:* Se subdivide en módulos de negocio (Bounded Contexts) refinados:
+** *Booking (Reservaciones):* Maneja el ciclo de vida de una reserva antes del check-in (CU-01 a CU-04).
+** *Stay Management (Gestión de Estancias):* Maneja el ciclo de vida de una estancia después del check-in (CU-07 a CU-10).
+** *Inventory & Config (Inventario y Configuración):* Modela el inventario físico (Hoteles, Habitaciones) y las políticas que lo gobiernan (Overbooking, Cancelación) (CU-13 a CU-24, CU-32, CU-33).
+** *Pricing (Tarifas):* Gestiona las tarifas base y los precios dinámicos por día (CU-29 a CU-31).
+** *Accounts (Cuentas):* Maneja las cuentas de huéspedes y personal del hotel (CU-05, CU-25 a CU-28).
+*Justificación (Driver -> Táctica):* El driver de Confiabilidad se satisface mediante el Aislamiento del Núcleo. Al aislar esta lógica, podemos probarla exhaustivamente sin depender de la base de datos o la interfaz de usuario, garantizando que el sistema sea correcto por diseño.
 
-==== Domain Layer (Capa de Dominio)
-Responsabilidad: Contener toda la lógica, reglas y estado del negocio. Este es el corazón del software y es completamente independiente.
-* **Contribución a la Calidad:** Esta capa es fundamental para la **confiabilidad**. Al aislar la lógica de negocio, podemos probarla exhaustivamente sin depender de la base de datos o la interfaz de usuario.
-
-==== Infrastructure Layer (Capa de Infraestructura)
-Responsabilidad: Gestionar todas las comunicaciones con elementos externos y detalles técnicos, como el acceso a la base de datos o la pasarela de pagos.
-* **Contribución a la Calidad:** Desacopla el núcleo del sistema de las tecnologías específicas, siendo un factor clave para la **mantenibilidad** y el **rendimiento**.
+. *Infrastructure Layer (Capa de Infraestructura)*
++
+*Responsabilidad:* Gestionar todas las comunicaciones con elementos externos y detalles técnicos.
+*Contenido:* Implementaciones de los repositorios definidos en el Dominio (usando el RDBMS que exige CON-1), clientes para APIs externas (como la pasarela de pago de CON-5), y servicios de logging (para CRN-5).
+*Justificación (Driver -> Táctica):* Satisface la Mantenibilidad y las Restricciones (CON-1, CON-5) mediante la Inversión de Dependencias. Si se cambia de proveedor de pagos, los cambios se limitan a esta capa.
 
 === Diagrama de Objetos: Flujo de Confirmación de Reserva
 

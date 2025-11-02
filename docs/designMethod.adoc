@@ -1,69 +1,143 @@
-== Proceso de Diseño Arquitectónico
+== 4.1 Método de Diseño
 
-El diseño de la arquitectura del Sistema de Gestión Hotelera fue un proceso sistemático y racional, guiado por la metodología **Attribute-Driven Design (ADD)** y complementado por el proceso de especificación **Component-Based Software Engineering (CBSE)** de Cheesman & Daniels. Este enfoque aseguró que cada decisión arquitectónica respondiera directamente a los impulsores de negocio y a los requisitos de calidad críticos (Quality Attributes Scenarios - QAS), evitando cualquier arbitrio y garantizando la construcción de una solución robusta y alineada con los objetivos estratégicos.
+El diseño de la arquitectura para el Sistema de Gestión Hotelera no fue un acto arbitrario, sino un proceso sistemático y racional enfocado en satisfacer las necesidades críticas del negocio. Para lograr esto, se implementó un enfoque metodológico dual:
 
-=== Attribute-Driven Design (ADD): Diseño Guiado por Atributos de Calidad
+* *Attribute-Driven Design (ADD):* Se utilizó para derivar la arquitectura de alto nivel (vistas, patrones y tácticas) directamente desde los impulsores arquitectónicos (ASRs), asegurando que la estructura responda a los requisitos de calidad más críticos.
+* *Component-Based Software Engineering (CBSE) (Cheesman & Daniels):* Se empleó como el proceso formal de especificación para traducir la arquitectura de alto nivel en un diseño detallado y contractual de componentes e interfaces, garantizando la coherencia y la correcta implementación.
 
-ADD es un método iterativo que enfoca el diseño arquitectónico en la satisfacción de los requisitos de calidad del sistema. En lugar de comenzar con componentes o módulos, ADD arranca con los impulsores arquitectónicos clave, que para nuestro sistema son los atributos de calidad (Confiabilidad, Disponibilidad, Rendimiento, etc.) y sus escenarios específicos (QAS) identificados en el documento de Impulsores Arquitectónicos.
+Este documento explica cómo se aplicaron ambos métodos de manera secuencial e iterativa.
 
-==== Backlog de Impulsores (Drivers Arquitectónicos)
+=== 1. Attribute-Driven Design (ADD): Derivando la Arquitectura
 
-El primer paso consistió en formalizar y priorizar el backlog de impulsores, que son los requisitos de calidad que el sistema debe satisfacer. Estos se extrajeron directamente de las preocupaciones de los stakeholders y los objetivos de negocio:
+ADD es un método iterativo que enfoca el diseño en la satisfacción de los atributos de calidad. En lugar de comenzar con componentes, ADD arranca con los impulsores arquitectónicos priorizados.
 
-* **Confiabilidad:** Evitar dobles reservas y dobles cobros (tasa de incidentes del 0%). Idempotencia en transacciones de pago.
-* **Disponibilidad:** Operación 24/7. Recuperación de fallos de la base de datos principal en menos de 5 minutos.
-* **Rendimiento:**
-** Consultas de disponibilidad: 500 req/s, con una latencia P95 <= 500ms.
-** Confirmaciones de reserva: Ráfagas de 10 req/s, con una latencia P95 <= 2.5s.
-* **Usabilidad:**
-** Check-in para recepcionista novato operable de forma autónoma tras 10 minutos de instrucción.
-** Flujo de reserva para huésped en menos de 5 pasos.
-* **Seguridad:** Control de acceso basado en roles y prevención de acceso no autorizado.
-* **Trazabilidad:** Registro detallado de todas las transacciones para permitir auditorías completas (CU-34).
+==== 1.1. Backlog de Impulsores (Drivers Arquitectónicos)
 
-Este backlog fue la guía inquebrantable para cada decisión arquitectónica tomada.
+El primer paso consistió en formalizar el backlog de impulsores, extraídos de los objetivos de negocio y los escenarios de atributos de calidad (QAS). Estos se priorizaron en función de su impacto crítico en el negocio:
 
-==== Iteraciones de Diseño y Decisiones Arquitectónicas
+* *Confiabilidad (Driver Principal):* Evitar dobles reservas (CF-01) y dobles cobros (CF-02) con una tasa de incidentes del 0%. Idempotencia en transacciones de pago.
+* *Disponibilidad:* Operación 24/7. Recuperación de fallos de la base de datos principal en < 5 minutos (DA-01).
+* *Rendimento:*
+** Consultas de disponibilidad: Latencia P95 ≤ 500ms bajo 300 QPS.
+** Confirmaciones de reserva: Picos de 10 TPS, con P95 ≤ 2.5s (RE-02).
+* *Usabilidad:* Check-in para recepcionista novato autónomo tras 10 minutos de instrucción.
+* *Restricciones:* Uso obligatorio de RDBMS para transacciones (CON-1), pago completo al reservar (CON-3) e integración con pasarela de pago externa (CON-5).
+* *Preocupaciones:* Trazabilidad y Observabilidad (CRN-5).
 
-El diseño se abordó a través de múltiples iteraciones, cada una enfocada en satisfacer uno o más impulsores del backlog.
+Este backlog fue la guía inquebrantable para cada decisión de diseño.
+
+==== 1.2. Iteraciones de Diseño y Decisiones Arquitectónicas (ADD)
+
+El diseño se abordó en iteraciones, cada una enfocada en satisfacer un conjunto de impulsores del backlog mediante tácticas y patrones específicos.
 
 ===== Iteración 1: Abordando Confiabilidad y Trazabilidad
-* **Objetivo de la Iteración:** Garantizar la integridad transaccional para eliminar el riesgo de dobles reservas y dobles cobros (drivers CF-01, CF-02) y establecer un mecanismo robusto para la auditoría de operaciones (driver CRN-5).
-* **Decisiones Tomadas (Tácticas/Patrones):**
-** **Manejo de Concurrencia (Bloqueo Optimista):** Para evitar dobles reservas (CF-01), se implementó un mecanismo de bloqueo optimista en la gestión de disponibilidad.
-** **Idempotencia en Pagos:** Para evitar dobles cobros (CF-02), se implementó una lógica a nivel de servicio de pagos para que una solicitud repetida solo resulte en una única transacción.
-** **Transacciones Atómicas (ACID):** Apoyado en la restricción (CON-1) de usar un RDBMS, las operaciones críticas se envuelven en transacciones atómicas para garantizar la consistencia.
-* **Drivers Atendidos:** Confiabilidad (totalmente), Trazabilidad (parcialmente).
-* **Criterio de Suficiencia:** Las tácticas están diseñadas para cumplir la meta de 0% de incidentes de dobles reservas/cobros.
 
-===== Iteración 2: Abordando Disponibilidad y Rendimiento en Lecturas
-* **Objetivo de la Iteración:** Asegurar la operación continua del sistema (driver DA-01) y optimizar el rendimiento de las consultas de disponibilidad.
-* **Decisiones Tomadas (Tácticas/Patrones):**
-** **Replicación de Base de Datos:** Para la alta disponibilidad (DA-01), se implementó una replicación activa-pasiva del RDBMS para cumplir el objetivo de recuperación en menos de 5 minutos.
-** **Patrón CQRS (Command Query Responsibility Segregation):** Para optimizar el rendimiento de las 500 consultas/segundo, se adoptó el patrón CQRS, separando los modelos de escritura de los de lectura.
-* **Drivers Atendidos:** Disponibilidad (totalmente), Rendimiento (consultas totalmente).
-* **Criterio de Suficiencia:** La replicación garantiza el RTO de < 5 minutos. CQRS está diseñado para cumplir la meta de 500 req/s y P95 <= 500ms.
+*Objetivo de la Iteración:* Garantizar la integridad transaccional (evitar dobles reservas y dobles cobros) y establecer la base para la auditoría (CRN-5).
 
-===== Iteración 3: Abordando Rendimiento en Escrituras y Usabilidad
-* **Objetivo de la Iteración:** Optimizar el rendimiento de las confirmaciones de reserva (driver RE-02) y mejorar la usabilidad.
-* **Decisiones Tomadas (Tácticas/Patrones):**
-** **Procesamiento Asíncrono (Colas de Mensajes):** Para manejar las 10 confirmaciones/segundo (RE-02), las tareas post-pago se gestionan de forma asíncrona.
-** **Arquitectura en Capas y API Orientada a Tareas:** Se definió una Arquitectura en Capas con una API REST orientada a tareas (ej. `POST /check-in`) para simplificar la lógica del cliente.
-* **Drivers Atendidos:** Rendimiento (confirmaciones totalmente), Usabilidad (bases del diseño).
-* **Criterio de Suficiencia:** El procesamiento asíncrono está dimensionado para la meta de 10 req/s. El diseño de la API está alineado con los objetivos de simplicidad.
+*Decisiones Tomadas (Tácticas/Patrones):*
+* *Aislamiento del Dominio (Patrón: Domain-Driven Design):* Se decidió aislar toda la lógica de negocio crítica en una Capa de Dominio explícita. Las reglas para verificar disponibilidad, aplicar overbooking (CON-4) y gestionar la concurrencia (CF-01) residirán aquí, independientes de la infraestructura.
+* *Manejo de Concurrencia (Táctica: Bloqueo Pesimista/Optimista):* Para el escenario CF-01, donde 50 usuarios compiten por la última habitación, se seleccionó el uso de bloqueo pesimista a nivel de base de datos (garantizado por el RDBMS) sobre el inventario al momento de la escritura. Para lecturas, se usará bloqueo optimista.
+* *Idempotencia en Pagos (Táctica: ID de Idempotencia):* Para satisfacer CF-02 y evitar dobles cobros, cada solicitud de pago al PaymentGatewayClient debe incluir un Idempotency-Key único. El servicio de pagos usará esta clave para garantizar que una solicitud repetida solo se procese una vez.
+* *Trazabilidad (Táctica: Logging/Auditoría):* Se estableció que todas las operaciones que modifican el estado (reserva, pago, check-in) deben generar un registro de auditoría (CRN-5), implementado en la Capa de Infraestructura (Logging).
 
-=== CBSE: Proceso de Especificación Basado en Componentes
+*Drivers Atendidos:* Confiabilidad (CF-01, CF-02), Trazabilidad (CRN-5), Restricción (CON-1).
 
-Paralelamente al enfoque de ADD, se utilizó el proceso de especificación de CBSE para traducir los requisitos en una estructura de software concreta y bien definida.
+*Criterio de "Suficiente":* Las tácticas de bloqueo e idempotencia están diseñadas para cumplir la meta de 0% de incidentes. El aislamiento del dominio permite pruebas unitarias de estas reglas críticas.
 
-==== Identificación: De Casos de Uso al Modelo de Conceptos
+===== Iteración 2: Abordando Disponibilidad y Rendimiento (Lectura)
 
-El primer paso fue realizar un análisis del dominio a partir de los **34 casos de uso** definidos (CU-01 a CU-34). Se identificaron los conceptos clave del negocio, que se formalizaron en el **Modelo de Conceptos de Negocio**.
+*Objetivo de la Iteración:* Asegurar la operación 24/7 (DA-01) y optimizar el alto volumen de consultas de disponibilidad (300 QPS).
 
-==== Interacción: Refinamiento de Operaciones e Interfaces
+*Decisiones Tomadas (Tácticas/Patrones):*
+* *Replicación de Base de Datos (Táctica: Redundancia):* Para satisfacer DA-01, la base de datos RDBMS principal (escritura) se replicará a una o más bases de datos secundarias (lectura). Se implementará un mecanismo de failover automático.
+* *Separación de Responsabilidades (Patrón: CQRS):* Para manejar la alta carga de lecturas (300 QPS) sin degradar el rendimiento transaccional de las reservas (10 TPS), se adoptó un patrón CQRS (Command Query Responsibility Segregation). Las escrituras (Comandos) irán al RDBMS principal, mientras que las consultas de disponibilidad (Queries) se dirigirán a las réplicas de lectura optimizadas.
+* *Caching (Táctica: Caché Distribuido):* Para reducir la latencia de las consultas de disponibilidad (P95 ≤ 500ms) y disminuir la carga en las réplicas de BD, se implementará un caché distribuido (ej. Redis) en la Capa de Infraestructura.
 
-Se analizaron las interacciones para los casos de uso críticos. El flujo de **Confirmación de Reserva (CU-02 y CU-03)** permitió definir las operaciones necesarias entre las capas para refinar las responsabilidades de cada componente.
+*Drivers Atendidos:* Disponibilidad (DA-01), Rendimiento (Consultas).
 
-==== Especificación: Definición de Interfaces y Contratos de Componentes
+*Criterio de "Suficiente":* La replicación y el failover están diseñados para cumplir el RTO de < 5 minutos. CQRS y el caching están dimensionados para manejar 300 QPS con latencia P95 < 500ms.
 
-El último paso consistió en formalizar la estructura y los contratos de los componentes en la **Vista Lógica**. La arquitectura se especificó como un sistema en **4 capas (Presentación, Aplicación, Dominio, Infraestructura)**, donde cada capa es un componente lógico con responsabilidades y restricciones claras.
+===== Iteración 3: Abordando Rendimiento (Escritura) y Usabilidad
+
+*Objetivo de la Iteración:* Optimizar el flujo de confirmación de reserva (RE-02, P95 ≤ 2.5s) y sentar las bases para una alta usabilidad en recepción.
+
+*Decisiones Tomadas (Tácticas/Patrones):*
+* *Orquestación de Casos de Uso (Táctica: Capa de Aplicación):* Se definió una Capa de Aplicación explícita cuya única responsabilidad es orquestar los casos de uso (ej. BookingApplicationService). Esto satisface la Usabilidad al mantener los controladores (BookingController) simples y delgados.
+* *Procesamiento Asíncrono (Táctica: Colas de Mensajes):* El escenario RE-02 (P95 ≤ 2.5s) es difícil de cumplir si incluye la comunicación síncrona con la pasarela de pago y el envío de correos. Se decidió que el ApplicationService solo realizará las operaciones críticas (verificar inventario, procesar pago). Tareas no críticas (ej. enviar email de confirmación, notificar a auditoría) se manejarán de forma asíncrona mediante una cola de mensajes (Infraestructura).
+
+*Drivers Atendidos:* Rendimiento (RE-02), Usabilidad.
+
+*Criterio de "Suficiente":* El procesamiento asíncrono libera el hilo de solicitud rápidamente, permitiendo que la respuesta al usuario (P95) se mantenga bajo los 2.5 segundos, incluso si las tareas en segundo plano toman más tiempo.
+
+=== 2. CBSE (Cheesman & Daniels): El Proceso de Especificación
+
+Las iteraciones ADD definieron la arquitectura de alto nivel (Capas, DDD, CQRS). Sin embargo, para que esta arquitectura sea implementable y cumpla con los drivers de confiabilidad, necesitamos un proceso riguroso para especificar el comportamiento de sus partes. Aquí es donde se aplica el proceso CBSE de Cheesman & Daniels, que sigue tres fases: Identificación, Interacción y Especificación.
+
+==== 2.1. Fase 1: Identificación de Componentes
+
+El objetivo de esta fase es identificar las especificaciones de componentes (<<comp spec>>) que el sistema necesita.
+
+*Entradas:* Las entradas principales para esta fase fueron los Casos de Uso (CU-01 a CU-34) y el Modelo de Conceptos de Negocio (implícito en la Capa de Dominio de la Vista Lógica).
+
+*Proceso:*
+* *Identificación de Interfaces:* Analizamos los casos de uso para identificar los "puntos de contacto" del sistema. Los actores (Huésped, Recepcionista, Administrador) definen las interfaces de presentación. Los sistemas externos (Pasarela de Pago) definen interfaces de infraestructura.
+* *Agrupación de Funcionalidad:* Agrupamos los casos de uso por cohesión funcional. Por ejemplo:
+** CU-01 (Consultar disponibilidad), CU-02 (Reservar), CU-03 (Pagar), CU-04 (Cancelar) se agruparon en la necesidad de un componente *Booking*.
+** CU-08 (Check-in), CU-07 (Check-out), CU-09 (Cambiar habitación) se agruparon en un componente *StayManagement*.
+** CU-17 (Registrar tipo habitación), CU-21 (Registrar habitación), CU-32 (Gestionar overbooking) se agruparon en un componente *Inventory*.
+* *Modelo de Conceptos:* El modelo de dominio (Reservation, RoomType, Hotel) sirvió para definir los datos que estos componentes gestionarían.
+
+*Salida:* Un primer borrador de las Especificaciones de Componentes (<<comp spec>>) y sus interfaces (<<interface type>>) necesarias para satisfacer los requisitos funcionales.
+
+==== 2.2. Fase 2: Interacción de Componentes
+
+El objetivo de esta fase es refinar las interfaces y componentes modelando cómo colaboran para realizar las operaciones del sistema.
+
+*Entradas:* Los Casos de Uso detallados y el borrador de componentes de la Fase 1.
+
+*Proceso:* Se utilizaron Diagramas de Comunicación (o Secuencia) de UML para modelar el flujo de las operaciones críticas del sistema, trazándolas contra las capas definidas en el ADD.
+
+===== Ejemplo: Flujo "Confirmar Reserva" (CU-02 + CU-03)
+
+Modelamos esta interacción, lo cual está reflejado en el Diagrama de Objetos de la Vista Lógica.
+. Un *BookingController* (Presentación) recibe la llamada.
+. Invoca a *BookingApplicationService* (Aplicación).
+. Este servicio requiere interfaces de dominio e infraestructura.
+. Llama a *IInventoryRepository.GetRoomType()* (Infraestructura) para obtener el objeto *RoomType* (Dominio).
+. Llama a *RoomType.reserveRoom()* (Dominio), donde reside la lógica de concurrencia (CF-01).
+. Llama a *IPaymentGateway.ProcessPayment()* (Infraestructura), donde se aplica la idempotencia (CF-02).
+. Llama a *IReservationRepository.Save()* (Infraestructura) para persistir la reserva (CON-1).
+
+*Salida:* Este proceso validó las decisiones de las iteraciones de ADD (ej. la necesidad de una capa de aplicación para orquestar) y refinó las firmas de las operaciones en cada interfaz (<<interface type>>).
+
+==== 2.3. Fase 3: Especificación de Componentes
+
+Esta es la fase final y más detallada, donde se definen los "contratos" formales que garantizan la confiabilidad del sistema.
+
+*Entradas:* Las interfaces y componentes refinados de la Fase 2.
+
+*Proceso:* Siguiendo el rigor de Cheesman & Daniels, se especificaron los contratos de las interfaces clave (<<interface type>>).
+
+*Firmas de Operación:* Se definieron los parámetros de entrada y salida (ej. *ProcessPayment(RequestDTO, IdempotencyKey)*).
+
+*Precondiciones:* Obligaciones que el cliente (invocador) debe cumplir.
+*Ejemplo:* Para *IInventory.reserveRoom(roomTypeID, dates)*:
+----
+pre: roomTypeID debe existir.
+pre: dates debe ser un rango válido.
+----
+
+*Postcondiciones:* Garantías que el proveedor (componente) ofrece si las precondiciones se cumplen. Fundamental para la Confiabilidad (CF-01).
+*Ejemplo:* Para *IInventory.reserveRoom(roomTypeID, dates)*:
+----
+post: El inventario disponible para (roomTypeID, dates) se ha decrementado en 1.
+post: Si no hay inventario (incluyendo overbooking), se lanza una excepción "NoAvailabilityException".
+----
+
+*Invariantes:* Reglas que deben ser siempre verdaderas.
+*Ejemplo:* Para *InventoryComponent*:
+----
+inv: El número de habitaciones reservadas para un (roomTypeID, date) nunca debe exceder el (inventario físico + política de overbooking).
+----
+
+*Salida:* Un conjunto de Especificaciones de Componentes (<<comp spec>>) e Interfaces (<<interface type>>) con contratos formales. Estos contratos son la garantía de diseño de que los ASRs críticos, como la Confiabilidad (CF-01, CF-02), se cumplen, no por casualidad, sino por un diseño contractual explícito.
