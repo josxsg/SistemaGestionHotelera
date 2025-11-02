@@ -26,6 +26,6 @@ include::designMethod.adoc[]
 include::logicalView.adoc[]
 include::businessConceptModel.adoc[]
 include::componentView.adoc[]
-include::communicationView.adoc[]
 include::interfaceDiagram.adoc[]
+include::communicationView.adoc[]
 
