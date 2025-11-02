@@ -1,4 +1,4 @@
-= Definición de Requerimientos
+= Definición de Requerimientos.
 :doctype: book
 :lang: es
 :encoding: utf-8
