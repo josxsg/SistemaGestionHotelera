@@ -98,3 +98,61 @@ image::img/ComponentDiagrams/ComponentDiagramNotificaciones.png[alt="Especificac
 * **Diagrama de Especificación:**
 
 image::img/ComponentDiagrams/ComponentDiagramAuditoria.png[alt="Especificación del Componente Auditoria"]
+
+=== 2. Invariantes de Especificación de Componente
+
+Las siguientes invariantes son reglas de consistencia interna que cada componente debe garantizar en todo momento. Complementan los contratos de interfaz (pre/post-condiciones) y son fundamentales para la robustez del sistema y el cumplimiento de ASRs como ASR-Consistencia y ASR-CF-01.
+
+==== 2.1. Componente: ConsultaDisponibilidad
+
+INV-CD-01: (Si se usa caché para ASR-RE-01) La caché de disponibilidad nunca debe tener una fecha de expiración (TTL) mayor al tiempo de actualización del inventario. El estado "leído" (consultado) nunca debe ser más reciente que el estado "escrito" (confirmado).
+
+==== 2.2. Componente: GestionReservas
+
+INV-GR-01: Una Reservacion en estado "Confirmada" DEBE tener exactamente un Pago asociado en estado "Aprobado" (garantiza ASR-Consistencia financiera).
+
+INV-GR-02: Una Reservacion en estado "Confirmada" DEBE tener una entrada de inventario (en IInventario) que descuente la disponibilidad para el idTipoHabitacion y las fechas correspondientes (garantiza ASR-CF-01).
+
+INV-GR-03: Una Reservacion en estado "Cancelada" NO DEBE tener una entrada de inventario que descuente la disponibilidad (el inventario debe estar liberado).
+
+==== 2.3. Componente: Pagos
+
+INV-PA-01: Un idReferencia (usado en IPagos.procesarPago) solo puede estar asociado a un Pago. Esto garantiza la idempotencia y el cumplimiento de ASR-CF-02 (0 dobles cobros).
+
+INV-PA-02: Un Reembolso (creado por IReembolsos) solo puede existir si está asociado a un Pago en estado "Aprobado".
+
+INV-PA-03: La suma de los montos de todos los Reembolso asociados a un Pago no puede ser mayor que el monto original del Pago.
+
+==== 2.4. Componente: GestionEstancias
+
+INV-GE-01: Una Estancia en estado "Activa" DEBE estar asociada a una Reservacion en estado "Confirmada".
+
+INV-GE-02: Una Estancia en estado "Activa" DEBE estar asociada a una Habitacion (en IInventario) cuyo estado sea "Ocupada" (garantiza consistencia entre la estancia y el inventario físico).
+
+INV-GE-03: Una Habitacion (en IInventario) en estado "Ocupada" DEBE estar asociada a una (y solo una) Estancia en estado "Activa".
+
+INV-GE-04: Un Consumo (creado por IConsumos) solo puede asociarse a una Estancia en estado "Activa" (previene cargos a estancias ya finalizadas).
+
+==== 2.5. Componente: AdministracionCentral
+
+INV-AC-01: Una Habitacion (gestionada por IInventario) no puede existir si no está asociada a un TipoHabitacion y a un Hotel válidos (integridad referencial de catálogos).
+
+INV-AC-02: Un PrecioPorDia (gestionado por ITarifas) no puede existir si no está asociado a una TarifaBase válida.
+
+INV-AC-03: Un Hotel (gestionado por ICatalogoHotel) es la raíz de la jerarquía de inventario, tarifas y políticas. No puede eliminarse si tiene habitaciones o políticas activas asociadas.
+
+INV-AC-04: Una cuenta de Personal (gestionada por IGestionPersonal) debe tener exactamente un Rol asignado.
+
+==== 2.6. Componente: Autenticacion
+
+INV-AU-01: Un Huesped y una cuenta de Personal no pueden compartir el mismo email (identificador único de usuario en el sistema).
+
+INV-AU-02: Un TokenSesion (generado por ISesionUsuario.login) debe estar asociado a un (y solo un) usuario activo (sea Huesped o Personal).
+
+==== 2.7. Componente: Notificaciones
+
+INV-NO-01: Un mensaje (Email o SMS) encolado por INotificacion debe intentar enviarse al menos N veces (ej. 3 veces) antes de ser marcado como "Fallido" (garantiza la entrega "at-least-once" o un registro de fallo).
+
+==== 2.8. Componente: Auditoria
+
+INV-AD-01: Un RegistroAuditoria (creado por IAuditoria.registrarEvento) es inmutable. Una vez escrito, no puede ser modificado ni eliminado.
