@@ -36,6 +36,7 @@ El sistema es responsable de todas las funcionalidades necesarias para la gesti�
 * *Gestión de Catálogo y Tarifas (Backoffice):* Ofrece una interfaz para que la administración gestione el inventario de hoteles, habitaciones y sus tipos, así como las tarifas asociadas.
 * *Administración Centralizada de Políticas:* Permite a los administradores configurar de manera centralizada las tarifas diarias y las políticas estratégicas de negocio, como el límite de overbooking del 10%.
 * *Registro de Operaciones:* Incluye el registro de consumos adicionales durante la estancia del huésped (ej. desayunos) y la generación de logs para cada transacción con fines de auditoría.
+* **Auditoría:** Generación de logs inmutables para trazabilidad financiera.
 
 La primera versión (MVP) se centrará en el núcleo crítico del negocio para acelerar la entrega de valor, abarcando exclusivamente el flujo completo de reserva (disponibilidad -> confirmación -> pago) y las operaciones esenciales de recepción (check-in y check-out).
 
@@ -99,32 +100,42 @@ ID:: CU-01
 Nombre:: Consultar disponibilidad de habitaciones
 Autor:: Aldo Antonio Campos Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Un Huésped consultará las habitaciones disponibles de acuerdo a sus criterios brindados.
-Actor(es):: Huésped
-Disparador:: El Huésped accede a la página de reservaciones y selecciona la opción para consultar disponibilidad.
-Precondiciones:: PR-01 El sistema debe contar con hoteles, tipos de habitación y tarifas cargadas y activas por la administración.
+Descripción:: Este caso de uso permite que el HUÉSPED logre identificar opciones de alojamiento viables mediante el ingreso de criterios de búsqueda (destino, fechas, ocupación) y la consulta en tiempo real al inventario. El resultado es una lista de tipos de habitación disponibles con tarifas calculadas y garantizadas listas para la selección.
+Actor(es):: HUÉSPED
+Disparador:: El HUÉSPED accede al módulo de reservaciones y solicita iniciar una búsqueda.
+Precondiciones::
+PRE-01: El catálogo de Hoteles, Tipos de Habitación y Tarifas están activos y vigentes en el sistema.
+PRE-02: El sistema tiene acceso a las políticas de precios dinámicos y reglas de ocupación.
 Flujo Normal::
-. El huésped introduce los criterios de búsqueda y confirma la búsqueda.
-. El sistema recibe los criterios, valida la información, calcula la disponibilidad y los precios para las fechas solicitadas y muestra la lista de tipos de habitación.
-. El huésped visualiza en pantalla la lista de tipos de habitación y selecciona una.
-. Extiende al CU-02 Reservar una Habitación.
+. El Sistema muestra el formulario de búsqueda solicitando: Destino, Fecha de Entrada, Fecha de Salida y Cantidad de Personas (Adultos/Niños).
+. El HUÉSPED introduce los criterios de búsqueda requeridos y confirma la solicitud.
+. El Sistema valida que los datos sean lógicos (fechas coherentes, destino existente, capacidad máxima). (Ver FA 3.1).
+. El Sistema consulta el inventario aplicando la Política de Overbooking. (Ver EX-01)
+. El Sistema calcula la tarifa total dinámica por noche y filtra los resultados disponibles. (Ver FA 5.1) (Ver EX-01).
+. El Sistema presenta la lista de Tipos de Habitación disponibles, mostrando imágenes, descripción y el precio total exacto.
+. El HUÉSPED selecciona un Tipo de Habitación específico de la lista.
+. Termina CU.
 Flujos Alternos::
-FA 2.1 Datos inválidos
-. El sistema notifica al huésped que ingresó datos inválidos.
-. Se regresa al paso 1 del flujo normal.
+FA 3.1 Datos Inválidos
+. El Sistema detecta inconsistencias (ej. Fecha Salida < Fecha Entrada, o número de huéspedes excede política global).
+. El Sistema marca los campos erróneos y muestra un mensaje explicativo al HUÉSPED.
+. Se regresa al paso 2 del Flujo Normal.
 +
-FA 3.1 Sin Disponibilidad
-. Si el sistema no encuentra ningún tipo de habitación que satisfaga los criterios, notifica al huésped la falta de disponibilidad y sugiere modificar los parámetros.
-. Termina el CU.
+FA 5.1 Sin Disponibilidad
+. El Sistema determina que no hay habitaciones que cumplan los criterios (incluso aplicando el margen de Overbooking).
+. El Sistema notifica la falta de disponibilidad exacta y sugiere fechas alternativas cercanas o tipos de habitación superiores.
+. Se regresa al paso 2 del Flujo Normal (permitiendo modificar criterios).
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
+. El sistema muestra al HUÉSPED el mensaje de error de conexión con la base de datos
+. El HUÉSPED cierra el mensaje
+. Termina CU
 Postcondiciones::
+POST-01: El sistema retiene el contexto de selección para el inicio del proceso de reserva (input del CU-02).
 Reglas de negocio::
-RN-01 Política de Overbooking: Política de overbooking del 10%
-RN-02 Precios Dinámicos: El precio mostrado al Huésped debe calcularse por día por la Administración.
-RN-03 Coherencia de Precios: El precio total de la estancia mostrado al huésped debe ser exactamente el que se usará.
+RN-01 Política de Overbooking: Se permite vender hasta un 10% adicional de la capacidad física real.
+RN-02 Precios Dinámicos: El cálculo debe realizarse en el momento de la consulta basándose en la ocupación actual y temporada.
+RN-03 Coherencia de Precios: El precio mostrado en este paso es inmutable si el cliente procede a reservar en la misma sesión (TTL de sesión).
 
 [#CU-02]
 === CU-02: Reservar una Habitación
@@ -133,30 +144,38 @@ ID:: CU-02
 Nombre:: Reservar una Habitación
 Autor:: Aldo Antonio Campos Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Un huésped realiza una reserva y se prepara para el pago.
-Actor(es):: Huésped
-Disparador:: Un huésped seleccionó una habitación previamente.
-Precondiciones:: PR-01 El huésped debe haber seleccionado un tipo de habitación con disponibilidad activa.
+Descripción:: Este caso de uso permite que el HUÉSPED logre formalizar la intención de compra mediante la captura de datos personales, la validación final de disponibilidad en tiempo real y el bloqueo de inventario. El resultado es una transacción de reserva inicializada, con inventario retenido y precio congelado, lista para el procesamiento del pago.
+Actor(es):: HUÉSPED
+Disparador:: El HUÉSPED confirma su selección de habitación desde el catálogo o resultados de búsqueda.
+Precondiciones::
+PRE-01: Existe una selección de habitación activa en la sesión del usuario.
+PRE-02: El sistema de tarifas ha calculado un precio total preliminar.
 Flujo Normal::
-. El sistema solicita los datos personales del huesped.
-. El huésped ingresa los datos del huésped y confirma la estancia y el precio.
-. El sistema retiene el inventario para la habitación y muestra la opción de pago.
-. El huésped selecciona la opción para hacer el pago.
-. Incluye al CU-03 Hacer pago con tarjeta.
+. El Sistema solicita la información del titular de la reserva (Nombre, Apellidos, Correo, Teléfono).
+. El HUÉSPED ingresa los datos solicitados y confirma la operación.
+. El Sistema ejecuta una verificación de disponibilidad e intenta realizar el Bloqueo de Inventario para las fechas seleccionadas. (Ver FA 3.1)
+. El Sistema congela el precio final y genera un identificador de transacción temporal. (Ver RN-02)
+. El Sistema presenta el resumen de la reserva (Fechas, Habitación, Precio Total, Datos del Huésped) y solicita proceder al pago.
+. El HUÉSPED verifica la información y selecciona la opción de pagar.
+. Se Incluye al CU-03: Procesar Pago.
+. El Sistema confirma la creación definitiva de la reserva y notifica al usuario el código de confirmación. (Ver EX-01)
+. Termina CU.
 Flujos Alternos::
-FA 2.1 Datos inválidos
-. El sistema notifica al huésped que ingresó datos inválidos.
+FA 3.1 Conflicto de Concurrencia (Overbooking/Race Condition)
+. El sistema detecta que el inventario seleccionado ya no está disponible.
+. El sistema notifica al HUÉSPED que la habitación se ha agotado durante el proceso.
 . Se regresa al paso 1 del flujo normal.
-+
-FA 3.1 Sin Inventario
-. Si el sistema no encuentra ningún tipo de habitación, notifica al huésped la falta de disponibilidad.
-. Termina el CU.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
+. El sistema muestra al HUÉSPED el mensaje de error de conexión con la base de datos
+. El HUÉSPED cierra el mensaje
+. Termina CU
 Postcondiciones::
+POST-01: Se crea un registro de Reserva en estado "Confirmada" asociado al HUÉSPED.
+POST-02: El inventario correspondiente (Habitación/Fecha) queda marcado como "Ocupado" de forma permanente para esa transacción.
 Reglas de negocio::
+RN-01: El sistema debe garantizar que el bloqueo del inventario sea atómico.
+RN-02: El precio mostrado al inicio del flujo debe ser exactamente el mismo cobrado al final, independientemente de cambios de tarifa ocurridos durante los minutos de captura de datos.
 
 [#CU-03]
 === CU-03: Hacer pago con tarjeta
@@ -165,36 +184,45 @@ ID:: CU-03
 Nombre:: Hacer pago con tarjeta
 Autor:: Aldo Antonio Campos Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: El huésped realiza el pago completo de la reservación mediante la pasarela de pago para confirmar su estancia.
+Descripción:: Este caso de uso permite que el HUÉSPED logre perfeccionar el contrato de reservación mediante la autorización segura de fondos y la conciliación transaccional. El resultado es una obligación financiera liquidada y el derecho de uso de la habitación garantizado.
 Actor(es):: Huésped
-Disparador:: El huésped ha seleccionado la opción de pago con tarjeta.
-Precondiciones:: El huesped seleccionó un tipo de habitación previamente.
+Disparador:: El CU-02 invoca este proceso una vez que el usuario confirma su intención de reservar.
+Precondiciones::
+PRE-01: Existe una transacción de reserva en estado "Pendiente de Pago" con un monto congelado.
+PRE-02: El temporizador de "Bloqueo de Inventario" no ha expirado (la habitación sigue retenida temporalmente).
 Flujo Normal::
-. El sistema verifica si el huésped tiene tarjetas registradas. Muestra las opciones disponibles, además de la opción de agregar una nueva tarjeta u otro método de pago.
-. El huésped selecciona una tarjeta registrada o ingresa los datos de una nueva tarjeta.
-. El sistema muestra los detalles finales de la reservación y el monto total a pagar.
-. El huésped confirma el pago.
-. El sistema procesa el pago mediante la pasarela de pago, actualiza el estado de la reservación a Confirmada, libera la retención y genera un recibo de pago.
-. Termina el caso de uso.
+. El Sistema recupera los métodos de pago asociados al HUÉSPED.
+. El HUÉSPED selecciona un método de pago y confirma la operación. (Ver FA 2.1)
+. El Sistema envía la solicitud de cobro a la PASARELA DE PAGOS incluyendo el monto, la moneda y la llave de idempotencia.
+. La PASARELA DE PAGOS procesa y retorna una confirmación de "Autorizado" con un código de autorización. (Ver EX-01)
+. El Sistema registra el éxito financiero, cambia el estado de la reserva de "Pendiente" a "Pagada" y cambia el bloqueo de inventario a ocupación definitiva. (Ver FA 5.1)
+. El Sistema genera el comprobante digital de la transacción.
+. El HUESPED cierra la operación.
+. Termina CU.
 Flujos Alternos::
 FA 2.1 Sin tarjetas registradas
-. Si el huésped no tiene tarjetas registradas, el sistema solicita directamente ingresar los datos de la tarjeta.
+. El HUESPED selecciona la opción de agregar un nuevo método de pago.
+. El Sistema solicita los datos necesarios
+. El HUESPED ingresa los datos correspondientes.
 . Se regresa al paso 1 del flujo normal.
++
+FA 5.1 Pago Rechazado (Fondos insuficientes / Fraude)
+. La PASARELA DE PAGOS retorna un código de rechazo.
+. El Sistema informa al HUÉSPED el motivo (si es público) y solicita un método de pago alternativo.
+. Regresa al paso 1 del Flujo Normal.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
+. El sistema muestra al HUÉSPED el mensaje de error de conexión con la base de datos
+. El HUÉSPED cierra el mensaje
+. Termina CU
 +
-EX-02 Falla de Conexión
-. El sistema muestra un mensaje de error notificando que no pudo conectarse con la pasarela de pagos y solicita al huésped intentar nuevamente más tarde.
-. Termina el CU.
-+
-EX-03 Pago Rechazado
-. El pago es rechazado por la pasarela de pago, el sistema muestra un mensaje de error y pide al huésped intentar nuevamente.
-. Regresa al paso 1 del flujo normal.
+EX-02 Fallo de comunicación con la PASARELA DE PAGOS
+. El sistema muestra un mensaje de error notificando que no pudo conectarse con la pasarela de pagos y solicita al huésped intentar nuevamente más tarde
+. El HUÉSPED cierra la operación.
+. Termina el CU
 Postcondiciones::
-POST-01 El pago de la reservación queda registrado en el sistema.
-POST-02 La habitación queda reservada y confirmada para el huésped, y el inventario se actualiza a Reservado.
+POST-01 (Conciliación): Existe un registro de transacción financiera vinculado unívocamente a la Reserva y al código de autorización externo.
+POST-02: El estado de la reserva es "Confirmada".
 Reglas de negocio::
 RN-02 Transacción Única: El sistema debe garantizar que cada intento de cobro a la pasarela de pago sea procesado solo una vez para evitar dobles cobros.
 
@@ -205,36 +233,41 @@ ID:: CU-04
 Nombre:: Cancelar una reservación
 Autor:: Aldo Antonio Campos Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Permite a un huésped anular una reserva existente y confirmada.
-Actor(es):: Huésped
-Disparador:: Un huésped selecciona la opción de Cancelar Reserva.
-Precondiciones:: PR-01: Existe una reserva en el sistema para ese huésped.
+Descripción:: Este caso de uso permite que el HUÉSPED logre disolver el contrato de servicio y recuperar fondos aplicables mediante la identificación segura de la reserva y la aceptación de penalizaciones. El resultado es la liberación inmediata del inventario para su reventa y la programación del reembolso financiero según políticas.
+Actor(es):: HUÉSPED
+Disparador:: El HUÉSPED selecciona la opción de "Gestionar/Cancelar Reserva" en el portal.
+Precondiciones::
+PRE-01: La reserva debe encontrarse en un estado activo (Confirmada o Pagada)
 Flujo Normal::
-. El sistema muestra el apartado para ingresar el número de confirmación de la reserva.
-. El huésped proporciona su número de confirmación.
-. El sistema busca y muestra los detalles de la reserva a cancelar además del monto a reembolsar y las penalizaciones correspondientes.
-. El huésped confirma que desea proceder con la cancelación definitiva.
-. El sistema actualiza el estado de la reserva a "Cancelada" y libera a la habitación correspondiente en el inventario para las fechas de la reserva. Procesa la transacción del reembolso y envía una confirmación por correo electrónico al huésped.
+. El Sistema solicita el Código de Confirmación y el Apellido del Titular (o correo electrónico) para validar la propiedad de la reserva.
+. El HUÉSPED ingresa las credenciales solicitadas y confirma la búsqueda.
+. El Sistema recupera y válida que cumpla las condiciones para ser cancelada y recupera las políticas de cancelación vigentes para esa tarifa específica. (Ver FA 3.1) (Ver FA 3.2) (Ver EX-01)
+. El Sistema calcula y muestra el monto exacto de la penalización y el monto a reembolsar.
+. El HUÉSPED revisa los montos y confirma que desea proceder con la cancelación. (Ver FA 5.1)
+. El Sistema cambiar el estado de la reserva a "Cancelada" (Ver EX-01).
+. El Sistema confirma el éxito de la operación en pantalla y envía un correo electrónico de notificación. (Ver EX-01)
 . Termina CU.
 Flujos Alternos::
-FA 3.1 La reserva no es encontrada
-. Si el número de confirmación es incorrecto o no hay ninguna reservación, el sistema informa al huésped que la reserva no pudo ser localizada.
+FA 3.1 Reserva No Encontrada o Credenciales Inválidas
+. El sistema determina que la combinación de Código de Confirmación y Apellido no coincide con ningún registro activo.
+. El sistema notifica el error de autenticación.
 . Se regresa al paso 1 del flujo normal.
 +
-FA 4.1 El huésped decide no cancelar
-. El huésped selecciona la opción de no cancelar.
+FA 3.2 Reserva No Cancelable
+. El sistema detecta que la reserva ya pasó la fecha límite de cancelación o es una tarifa "No Reembolsable / No Cancelable".
+. El sistema informa al HUÉSPED que la operación no está permitida según la política contratada.
 . Termina CU.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-+
-EX-02: La reserva no es cancelable
-. Si la política de cancelación determina que la reserva no puede ser reembolsable, el sistema notifica al usuario.
-. Termina CU.
-Postcondiciones:: POST-01: El estado de la reserva se ha modificado a "Cancelada".
+. El sistema muestra al HUÉSPED el mensaje de error de conexión con la base de datos
+. El HUÉSPED cierra el mensaje
+. Termina CU
+Postcondiciones::
+POST-01: La Reserva pasa a estado histórico "Cancelada".
+POST-02: La disponibilidad del tipo de habitación incrementa para las fechas liberadas
+POST-03: Se genera un registro de movimiento financiero (Reembolso) o una cuenta por pagar.
 Reglas de negocio::
-RN-01: El cálculo del reembolso debe aplicar las reglas y penalizaciones definidas en la Política de Cancelación vigente.
+RN-01: El cálculo del reembolso debe aplicar las reglas y penalizaciones definidas en la Política de Cancelación vigente
 RN-02: Toda cancelación debe ser registrada para permitir su rastreo por parte de Auditoría.
 
 [#CU-05]
@@ -244,29 +277,46 @@ ID:: CU-05
 Nombre:: Crear cuenta de huésped
 Autor:: Aldo Antonio Campos Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Permite a un nuevo usuario registrarse en la plataforma para gestionar sus reservas y datos personales.
-Actor(es):: Huésped
-Disparador:: Un usuario sin cuenta previa selecciona la opción "Registrarse" en el sistema.
-Precondiciones:: PR-01: El usuario no debe tener una cuenta existente asociada a su dirección de correo electrónico.
+Descripción:: Este caso de uso permite que un VISITANTE logre establecer una identidad digital verificada mediante el suministro de credenciales y la validación de propiedad del correo. El resultado es una cuenta de usuario activa con permisos para gestionar reservas y acumular historial.
+Actor(es):: VISITANTE
+Disparador:: El VISITANTE selecciona la opción "Crear Cuenta" en la pantalla de inicio o durante el flujo de reserva.
+Precondiciones::
+PRE-01: El sistema de gestión de identidades (IDM) se encuentra operativo.
 Flujo Normal::
-. El sistema muestra un formulario de registro solicitando datos como nombre, apellido, correo electrónico y contraseña.
-. El huésped ingresa la información solicitada y confirma la creación de la cuenta.
-. El sistema valida los datos, crea la nueva cuenta en la base de datos, y muestra un mensaje de confirmación de registro exitoso.
-. Termina CU.
+. El Sistema presenta el formulario de registro solicitando: Nombre, Apellidos, Correo Electrónico, Teléfono y Contraseña.
+. El VISITANTE ingresa los datos y envía la solicitud.
+. El Sistema valida sintaxis de los datos y verifica que el correo electrónico no exista previamente en el directorio de usuarios. (Ver FA 3.1)
+. El Sistema aplica el algoritmo de hash a la contraseña y crea el registro de la cuenta en estado "Pendiente de Verificación". (Ver EX-01)
+. El Sistema envía un código de un solo uso al email proporcionado. (Ver EX-02)
+. El Sistema solicita al VISITANTE ingresar el código recibido para activar la cuenta.
+. El VISITANTE ingresa el código correcto. (Ver FA 7.1)
+. El Sistema valida el token y cambia el estado de la cuenta a "Activa". (Ver EX-01)
+. Termina CU
 Flujos Alternos::
 FA 3.1: Correo electrónico ya registrado
-. Si el sistema detecta que el correo electrónico ingresado ya existe, notifica al huésped.
+. El Sistema detecta que el correo ya está vinculado a una cuenta activa o inactiva.
+. El Sistema notifica: "Este correo ya está registrado" y ofrece la opción de "Recuperar Contraseña" o "Iniciar Sesión".
 . Termina CU.
 +
-FA 3.2: Datos inválidos
-. El sistema notifica al huésped que ingresó datos inválidos.
-. Se regresa al paso 2 del flujo normal.
+FA 7.1: Código de Verificación Inválido o Expirado
+. El Sistema detecta que el código ingresado no coincide o ha caducado.
+. El sistema solicita ingresar el código nuevamente o permite "Reenviar Código".
+. Se regresa al paso 6 del Flujo Normal.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01: Se ha creado y almacenado una nueva cuenta de huésped en el sistema.
-Reglas de negocio:: RN-01: La contraseña seleccionada por el huésped debe cumplir con las políticas de seguridad mínimas del sistema.
+. El sistema muestra al HUÉSPED el mensaje de error de conexión con la base de datos
+. El HUÉSPED cierra el mensaje
+. Termina CU
++
+EX-01 Fallo en Envío de Correo
+. El sistema crea la cuenta pero no logra conectar con el servidor de correos para enviar el token.
+. El sistema informa al usuario: "Cuenta creada, pero no pudimos enviar el correo de verificación. Por favor intente entrar más tarde para reenviar el código".
+. Termina CU
+Postcondiciones::
+POST-01: Existe un nuevo registro en la entidad USUARIOcon estado "Activo" y fecha de alta registrada.
+POST-02: Se ha creado un perfil de HUESPED vinculado a la cuenta de Usuario
+Reglas de negocio::
+RN-01 (Seguridad de Credenciales): La contraseña nunca debe almacenarse en texto plano. Debe usarse un algoritmo de hash robusto con salt aleatorio. La contraseña debe tener min. 8 caracteres, 1 mayúscula y 1 número.
 
 [#CU-06]
 === CU-06: Consultar mis reservaciones
@@ -275,23 +325,27 @@ ID:: CU-06
 Nombre:: Consultar mis reservaciones
 Autor:: Aldo Antonio Campos Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Permite a un usuario registrado ver el historial y el detalle de sus reservas activas y pasadas.
-Actor(es):: Huésped
-Disparador:: El huésped selecciona la opción "Mis Reservaciones" dentro de su cuenta.
+Descripción:: Este caso de uso permite que el HUÉSPED logre monitorear su actividad contractual mediante la visualización estructurada y detallada de sus estancias pasadas, presentes y futuras. El resultado es acceso a la información necesaria para gestionar cambios, cancelaciones o recuperar facturas.
+Actor(es):: HUÉSPED
+Disparador:: El HUÉSPED selecciona la opción "Mis Viajes" o "Historial" en el menú principal.
 Precondiciones::
+PRE-01: El HUÉSPED debe tener una sesión activa y autenticada en el sistema.
 Flujo Normal::
-. El sistema busca y muestra una lista de todas las reservaciones asociadas a la cuenta del huésped.
-. El huésped selecciona una reservación de la lista para ver su detalle.
-. El sistema muestra la información completa de la reservación seleccionada, incluyendo detalles del hotel, fechas, tipo de habitación y desglose de costos.
-. Termina el CU.
+. El Sistema recupera y muestra una lista de todas las reservaciones asociadas a la cuenta del huésped. (Ver EX-01) (Ver FA-1.1)
+. El HUÉSPED selecciona una RESERVACIÓN de la lista para ver su detalle.
+. El Sistema muestra la información completa de la RESERVACIÓN seleccionada, incluyendo detalles del hotel, fechas, tipo de habitación y desglose de costos.
+. El HUÉSPED cierra la RESERVACIÓN
+. Termina el CU
 Flujos Alternos::
 FA 1.1: Huésped sin reservaciones
-. Si el huésped no tiene ninguna reservación asociada a la cuenta el sistema notifica al huésped.
-. Termina el CU.
+. El Sistema muestra al HUÉSPED que no tiene ninguna RESERVACIÓN.
+. El HUÉSPED cierra el mensaje.
+. Termina el CU
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
+. El sistema muestra al HUÉSPED el mensaje de error de conexión con la base de datos
+. El HUÉSPED cierra el mensaje
+. Termina CU
 Postcondiciones::
 Reglas de negocio::
 
@@ -303,33 +357,50 @@ ID:: CU-07
 Nombre:: Registrar salida (Check-out)
 Autor:: Aldo Antonio Campos Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: El Recepcionista cierra la estancia del huésped en el sistema, y actualiza el estado de la habitación para limpieza.
-Actor(es):: Recepcionista
-Disparador:: Un huésped se presenta en recepción para finalizar su estancia.
-Precondiciones:: PR-01: Existe una reserva para el huésped con estado "Activa".
+Descripción:: Este caso permite que el RECEPCIONISTA logre formalizar la salida del HUESPED mediante el cálculo de consumos finales, la validación de la estancia y la liquidación de la cuenta. El resultado es la liberación de la HABITACIÓN para su limpieza y el cierre financiero de la estancia.
+Actor(es):: RECEPCIONISTA
+Disparador:: El RECEPCIONISTA selecciona la opción de "Check-out" en el módulo de recepción.
+Precondiciones::
+PRE-01 El RECEPCIONISTA ha iniciado sesión correctamente en el sistema.
+PRE-02 Existe una RESERVA en estado "Hospedado" asociada a una HABITACIÓN
 Flujo Normal::
-. El sistema muestra la opción para buscar estancias activas.
-. El recepcionista introduce el número de habitación del huésped para localizar la cuenta.
-. El sistema calcula y presenta el estado de cuenta final, incluyendo todos los consumos adicionales.
-. El recepcionista confirma los cargos con el huésped y registra el pago del saldo.
-. El sistema procesa el pago, actualiza el estado de la reserva a "Finalizada" y cambia el estado de la habitación a "Pendiente de Limpieza".
+. El Sistema muestra un campo solicitando el número de HABITACIÓN a liberar.
+. El RECEPCIONISTA ingresa el número de la HABITACIÓN.
+. El Sistema recupera y muestra los consumos registrados en la CUENTA del HUESPED. (Ver FA 3.1).
+. El RECEPCIONISTA informa el monto al HUESPED y selecciona el método de pago (Efectivo/Tarjeta).
+. El RECEPCIONISTA confirma la transacción de pago en el sistema. (Ver EX-02).
+. El Sistema registra el pago, cambia el saldo de la CUENTA a cero y genera el comprobante de pago.
+. El Sistema actualiza el estado de la RESERVA y cambia el estado de la HABITACIÓN automáticamente.
+. El Sistema muestra un mensaje de "Salida Exitosa".
 . Termina CU.
 Flujos Alternos::
-FA 4.1 El huésped no tiene consumo adicional
-. El sistema muestra al recepcionista que no hay ningún pago pendiente, actualiza el estado de la reserva a Finalizada y cambia el estado de la habitación a Pendiente de Limpieza.
-. Termina CU.
-Excepciones::
-EX-02 Falla de Conexión
-. El sistema muestra un mensaje de error notificando que no pudo conectarse con la pasarela de pagos y solicita al huésped intentar nuevamente más tarde.
-. Termina el CU.
+FA 3.1 Sin saldo pendiente (Saldo Cero)}
+. El Sistema detecta que la CUENTA del HUESPED tiene un saldo de $0.00.
+. El SISTEMA habilita directamente la opción de finalizar estancia sin requerir pago.
+. El RECEPCIONISTA confirma la salida.
+. Se salta al paso 7 del flujo normal.
 +
-EX-03 Pago Rechazado
-. El pago es rechazado por la pasarela de pago, el sistema muestra un mensaje de error y pide al huésped intentar nuevamente.
-. Regresa al paso 1 del flujo normal.
+FA 3.2 Habitación no encontrada o ya liberada
+. El SISTEMA busca la HABITACIÓN y detecta que no está ocupada o el número es incorrecto.
+. El SISTEMA muestra un mensaje de advertencia "Habitación no válida para Check-out".
+. El RECEPCIONISTA corrige el número.
+. Regresa al paso 2 del flujo normal.
+Excepciones::
+EX-01 Sin conexión con la base de datos
+. El sistema muestra al HUÉSPED el mensaje de error de conexión con la base de datos
+. El HUÉSPED cierra el mensaje
+. Termina CU
++
+EX-02. Transacción de pago rechazada
+. La pasarela de pagos informa al SISTEMA que la tarjeta ha sido declinada.
+. El SISTEMA muestra el mensaje "Pago Rechazado" al RECEPCIONISTA.
+. Regresa al paso 4 del flujo normal.
 Postcondiciones::
-POST-01: El estado de la reserva se ha modificado a Finalizada.
-POST-02: El estado de la habitación se ha actualizado a Pendiente de Limpieza.
-Reglas de negocio:: RN-01: Todos los consumos registrados en la cuenta del huésped deben ser liquidados para poder completar el check-out.
+POST-01 La RESERVA se encuentra registrada con el estado "Finalizada".
+POST-02 La HABITACIÓN cambia su estado a "Pendiente de Limpieza” en el inventario.
+POST-03 La CUENTA del HUESPED registra un saldo final de $0.00 y estado "Cerrada".
+Reglas de negocio::
+RN-01 No se puede completar el Check-out si la CUENTA presenta un saldo deudor.
 
 [#CU-08]
 === CU-08: Registrar llegada (check-in)
@@ -338,28 +409,41 @@ ID:: CU-08
 Nombre:: Registrar llegada (check-in)
 Autor:: Aldo Antonio Campos Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: El recepcionista localiza la reserva del huésped, valida su identidad y actualiza el estado de la habitación.
-Actor(es):: Recepcionista
-Disparador:: Un huésped con una reserva confirmada llega al hotel para iniciar su estancia.
+Descripción:: Este caso de uso permite que el RECEPCIONISTA logre formalizar la estancia del HUESPED mediante la recuperación de la RESERVA existente, la validación de identidad y la confirmación de la HABITACIÓN asignada. El resultado es el registro de ocupación en el sistema y la actualización del inventario de habitaciones.
+Actor(es):: RECEPCIONISTA
+Disparador:: El RECEPCIONISTA selecciona la opción de "Realizar Check-in" en el menú principal
 Precondiciones::
-PR-01: El recepcionista ha iniciado sesión en el sistema.
-PR-02: Existe una reserva en el sistema para el huésped con estado "Confirmada".
+PRE-01 El RECEPCIONISTA ha iniciado sesión correctamente en el sistema.
+PRE-02 Existe una RESERVA con estado "Confirmada" cuya fecha de llegada coincide con la fecha actual del sistema
 Flujo Normal::
-. El recepcionista solicita al huésped su número de confirmación y busca la reserva en el sistema.
-. El sistema muestra los detalles de la reserva.
-. El recepcionista valida la identidad del huésped, confirma los detalles de la estancia y realiza el check in en el sistema.
-. El sistema actualiza el estado de la habitación de "Reservada" a "Ocupada" y registra la fecha y hora.
+. El SISTEMA solicita el criterio de búsqueda de la RESERVA (código de confirmación o apellido del HUESPED).
+. El RECEPCIONISTA ingresa los datos solicitados del HUESPED.
+. El SISTEMA recupera y muestra los detalles de la RESERVA (fechas, tipo de habitación, HUESPED titular) y el estado de la HABITACIÓN asignada. (Ver FA 3.1) (Ver EX-01).
+. El RECEPCIONISTA solicita identificación oficial al HUESPED, valida los datos y confirma la operación en el sistema. (Ver FA 4.1).
+. El SISTEMA cambia el estado de la RESERVA y de la HABITACIÓN, y genera la tarjeta de registro digital.
+. El SISTEMA muestra un mensaje de éxito confirmando el número de HABITACIÓN.
 . Termina CU.
 Flujos Alternos::
-FA 2.1 La reserva no se encuentra
-. Si la reserva no existe, el sistema notifica al Recepcionista.
-. Termina el CU.
+FA 3.1 Reserva no encontrada
+. El SISTEMA detecta que no existen coincidencias con los datos ingresados.
+. El SISTEMA muestra un mensaje de "Reserva no encontrada".
+. El RECEPCIONISTA confirma el mensaje.
+. Se regresa al paso 2 del flujo normal.
++
+FA 4.1 Cancelación del proceso por el usuario
+. El RECEPCIONISTA cancela la operación de check-in.
+. El SISTEMA limpia los datos en pantalla sin realizar cambios en la base de datos.
+. Termina CU.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01 La reserva del huésped se actualiza a un estado "Activo".
+. El sistema muestra al RECEPCIONISTA el mensaje de error de conexión con la base de datos
+. El RECEPCIONISTA cierra el mensaje
+. Termina CU
+Postcondiciones::
+POST-01 La RESERVA pasa a estado "Hospedado" (In-House).
+POST-02 La HABITACIÓN pasa a estado "Ocupada" en el inventario, impidiendo nuevas reservas sobre ella.
 Reglas de negocio::
+RN-01 No se puede realizar Check-in si la HABITACIÓN asignada tiene estado "Sucia" o "Mantenimiento".
 
 [#CU-09]
 === CU-09: Cambiar de habitación a un huésped
@@ -368,60 +452,84 @@ ID:: CU-09
 Nombre:: Cambiar de habitación a un huésped
 Autor:: Aldo Antonio Campos Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Permite al recepcionista reasignar un huésped a una habitación diferente durante su estancia.
-Actor(es):: Recepcionista
-Disparador:: Un huésped solicita un cambio de habitación o el personal del hotel lo requiere por una necesidad operativa.
+Descripción:: Este caso de uso permite que el RECEPCIONISTA logre reasignar la ubicación física de un cliente mediante la selección de una nueva habitación disponible y el traspaso de la estancia. El resultado es la liberación de la habitación anterior para limpieza y la ocupación registrada de la nueva unidad.
+Actor(es):: RECEPCIONISTA
+Disparador:: El RECEPCIONISTA inicia el proceso por solicitud del huésped o necesidad operativa.
 Precondiciones::
-PR-01: El recepcionista ha iniciado sesión en el sistema.
-PR-02: Existe una reserva en el sistema para el huésped con estado "Confirmada".
+PRE-01: El RECEPCIONISTA ha iniciado sesión en el sistema.
+PRE-02: Debe existir una RESERVA en estado "Confirmada" o "En Casa" (Check-in) vinculada al HUÉSPED.
 Flujo Normal::
-. El sistema muestra la interfaz para gestionar estancias activas.
-. El recepcionista busca y selecciona la estancia del huésped que requiere el cambio.
-. El sistema muestra los detalles de la ocupación actual y una lista de las habitaciones disponibles y limpias.
-. El recepcionista selecciona la nueva habitación de la lista y confirma la operación.
-. El sistema asocia la estancia a la nueva habitación, actualiza el estado de la nueva habitación a "Ocupada" y el de la anterior a "Pendiente de Limpieza".
+. El Sistema muestra el tablero de gestión de estancias activas.
+. El RECEPCIONISTA busca y selecciona la estancia del huésped que requiere el cambio.
+. El Sistema recupera los detalles de la ocupación actual y despliega una lista de HABITACIONes disponibles que coinciden con la categoría actual. (Ver FA 3.1)
+. El RECEPCIONISTA selecciona la nueva HABITACIÓN destino de la lista.
+. El Sistema solicita confirmación para proceder con el cambio de asignación.
+. El RECEPCIONISTA confirma la operación.
+. El Sistema actualiza el registro de la ESTANCIA con la nueva HABITACIÓN, cambia el estado de la nueva HABITACIÓN a "Ocupada"
+. El Sistema marca la HABITACIÓN anterior como "Pendiente de Limpieza". (Ver EX-01)
 . Termina CU.
 Flujos Alternos::
 FA 3.1: Cambio a un tipo de habitación diferente
-. Si no hay habitaciones disponibles del mismo tipo, el sistema puede mostrar habitaciones de otras categorías.
-. Si el recepcionista selecciona una, el sistema recalcula la tarifa de la estancia si hay diferencia de precio.
-. Se regresa al paso 4 del flujo normal.
+. El RECEPCIONISTA filtra la búsqueda para ver habitaciones de otras categorías (Superiores o Inferiores) por falta de disponibilidad o solicitud del cliente.
+. El RECEPCIONISTA selecciona una habitación de diferente categoría.
+. El Sistema recalcula la tarifa total de la estancia basándose en la diferencia de precio y muestra el nuevo saldo. (Ver RN-01)
+. Se regresa al paso 5 del Flujo Normal.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01: La estancia del huésped queda registrada en la nueva habitación.
-Reglas de negocio:: RN-01: Cualquier diferencia en la tarifa por cambio de tipo de habitación debe ser registrada en la cuenta del huésped.
+. El sistema muestra al HUÉSPED el mensaje de error de conexión con la base de datos
+. El HUÉSPED cierra el mensaje
+. Termina CU
+Postcondiciones::
+POST-01: La estancia del HUESPED queda asociada a la nueva HABITACIÓN.
+POST-02: La HABITACIÓN anterior queda en estado "Sucia/Pendiente de Limpieza".
+POST-03: La nueva HABITACIÓN queda en estado "Ocupada".
+Reglas de negocio::
+RN-01: Cualquier diferencia en la tarifa por cambio de tipo de HABITACIÓN debe ser registrada en la cuenta del HUÉSPED.
 
 [#CU-10]
 === CU-10: Registrar consumo o servicio
 
 ID:: CU-10
 Nombre:: Registrar consumo o servicio
-Autor:: José Luis Silva Gómez
+Autor:: Aldo Antonio Campos Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Añade cargos adicionales a la cuenta de la habitación de un huésped por servicios o productos consumidos durante su estancia (ej. minibar, lavandería, restaurante).
-Actor(es):: Recepcionista
-Disparador:: El Recepcionista selecciona la opción "Añadir Cargo" desde la cuenta de una estancia activa.
+Descripción:: Este caso de uso permite que el RECEPCIONISTA logre imputar costos adicionales a la estancia del HUESPED mediante la selección de la HABITACIÓN y el registro del producto o servicio adquirido. El resultado es la actualización del saldo deudor en la CUENTA del HUESPED y el registro del consumo en el historial.
+Actor(es):: RECEPCIONISTA
+Disparador:: El RECEPCIONISTA selecciona la opción "Cargar Consumo" en el menú de gestión de estancias..
 Precondiciones::
-PR-01: El recepcionista ha iniciado sesión en el sistema.
-PR-02: Existe una estancia activa (check-in realizado) para el huésped.
+PRE-01 El RECEPCIONISTA ha iniciado sesión correctamente en el Sistema.
+PRE-02 Existe una RESERVA con estado "Hospedado" activa para el HUESPED.
 Flujo Normal::
-. El recepcionista busca y selecciona la estancia activa del huésped (por número de habitación o nombre).
-. El sistema muestra la cuenta actual del huésped.
-. El recepcionista ingresa la descripción del consumo o servicio y su importe.
-. El sistema valida y añade el cargo a la cuenta de la habitación, mostrando un mensaje de confirmación.
-. Termina el CU.
+. El Sistema solicita el número de HABITACIÓN o apellido del HUESPED.
+. El RECEPCIONISTA ingresa el criterio de búsqueda.
+. El Sistema recupera la información de la estancia y muestra el estado actual de la CUENTA. (Ver FA 3.1).
+. El RECEPCIONISTA ingresa el tipo de servicio, el concepto detallado y el monto a cargar.
+. El Sistema solicita confirmación para aplicar el cargo a la CUENTA mostrada.
+. El RECEPCIONISTA confirma la operación. (Ver FA 6.1).
+. El Sistema registra la transacción, actualiza el saldo total de la CUENTA y muestra un mensaje de éxito. (Ver EX-01).
+. Termina CU.
 Flujos Alternos::
-FA 2.1: Estancia no encontrada
-. Si el sistema no localiza una estancia activa con los datos proporcionados, notifica al recepcionista.
-. El flujo regresa al paso 2.
+FA 3.1 Estancia no encontrada
+. El Sistema busca la HABITACIÓN o HUESPED y no encuentra coincidencias activas.
+. El Sistema notifica "Estancia no encontrada o inactiva".
+. El RECEPCIONISTA verifica los datos.
+. Regresa al paso 2 del flujo normal.
++
+FA 6.1 Cancelación de cargo
+. El RECEPCIONISTA detecta un error en el monto o concepto ingresado antes de guardar.
+. El RECEPCIONISTA selecciona la opción de cancelar.
+. El Sistema limpia los campos de captura sin modificar la base de datos.
+. Termina CU.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01: El nuevo cargo ha sido registrado y añadido al estado de cuenta del huésped.
+. El sistema muestra al HUÉSPED el mensaje de error de conexión con la base de datos
+. El HUÉSPED cierra el mensaje
+. Termina CU
+Postcondiciones::
+POST-01 La CUENTA del HUÉSPED tiene registrado un nuevo movimiento de tipo "Cargo" con el monto especificado.
+POST-02 El saldo total de la CUENTA se encuentra actualizado sumando el nuevo importe.
 Reglas de negocio::
+RN-02 El monto del cargo debe ser mayor a cero y en la moneda configurada por el Sistema.
 
 [#CU-11]
 === CU-11: Buscar reserva de huésped
@@ -430,26 +538,30 @@ ID:: CU-11
 Nombre:: Buscar reserva de huésped
 Autor:: José Luis Silva Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Permite al recepcionista localizar una reserva específica utilizando diferentes criterios de búsqueda como nombre del huésped, apellido o número de confirmación.
-Actor(es):: Recepcionista
-Disparador:: El Recepcionista selecciona la opción "Buscar reserva".
-Precondiciones:: PR-01: El recepcionista ha iniciado sesión en el sistema.
+Descripción:: Este caso de uso permite que el RECEPCIONISTA logre localizar una RESERVA específica mediante la introducción de criterios de filtrado como nombre, apellido o código de confirmación. El resultado es la recuperación de la información detallada de la estancia para su gestión posterior.
+Actor(es):: RECEPCIONISTA
+Disparador:: El RECEPCIONISTA selecciona la opción "Buscar Reserva" en el panel principal.
+Precondiciones::
+PRE-01: El RECEPCIONISTA ha iniciado sesión correctamente en el Sistema
 Flujo Normal::
-. El sistema muestra la opción de búsqueda de reservas.
-. El recepcionista introduce al menos un criterio de búsqueda (ej. nombre del huésped).
-. El sistema busca en la base de datos y muestra una lista de las reservas que coinciden con los criterios.
-. El recepcionista selecciona la reserva correcta de la lista.
-. El sistema muestra todos los detalles de la reserva seleccionada.
-. Termina el CU.
+. El Sistema muestra el formulario de búsqueda de reservas.
+. El RECEPCIONISTA introduce los criterios de búsqueda (Apellido del HUESPED, código de reserva o fecha).
+. El Sistema consulta la base de datos y muestra un listado de las coincidencias encontradas. (Ver FA 3.1) (Ver EX-01).
+. El RECEPCIONISTA selecciona la RESERVA de interés dentro de la lista.
+. El Sistema recupera la información completa de la RESERVA seleccionada y la presenta en pantalla.
+. Termina CU.
 Flujos Alternos::
 FA 3.1 Búsqueda sin resultados
-. Si el sistema no encuentra ninguna reserva que coincida con los criterios, muestra un mensaje informativo.
-. El flujo regresa al paso 2.
+. El Sistema completa la búsqueda y no encuentra registros que coincidan con los datos ingresados.
+. El Sistema muestra un mensaje informativo "No se encontraron reservas con ese criterio".
+. El RECEPCIONISTA modifica los criterios de búsqueda.
+. Regresa al paso 2 del flujo normal.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01: El recepcionista ha visualizado la información detallada de la reserva buscada.
+. El sistema muestra al RECEPCIONISTA el mensaje de error de conexión con la base de datos
+. El RECEPCIONISTA cierra el mensaje
+. Termina CU
+Postcondiciones::
 Reglas de negocio::
 
 [#CU-12]
@@ -459,28 +571,30 @@ ID:: CU-12
 Nombre:: Consultar estado de habitación
 Autor:: José Luis Silva Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Muestra al recepcionista una vista general y en tiempo real del estado de todas las habitaciones del hotel (ej. Disponible, Ocupada, Pendiente de Limpieza, En Mantenimiento).
-Actor(es):: Recepcionista
-Disparador:: El Recepcionista selecciona la opción "Estado de Habitaciones" en su panel principal.
+Descripción:: Este caso de uso permite que el RECEPCIONISTA logre supervisar la operatividad del hotel mediante la recuperación del inventario completo de habitaciones y sus condiciones actuales (limpieza/ocupación). El resultado es la obtención de un panorama en tiempo real para la toma de decisiones sobre asignaciones.
+Actor(es):: RECEPCIONISTA
+Disparador:: El RECEPCIONISTA selecciona la opción "Monitor de Habitaciones" en el panel principal.
 Precondiciones::
+PRE-01 El RECEPCIONISTA ha iniciado sesión correctamente en el Sistema.
 Flujo Normal::
-. El sistema recupera y muestra una lista o un mapa gráfico de todas las habitaciones del hotel.
-. Cada habitación se muestra con su estado actual, a menudo indicado por un código de color.
-. Termina el CU.
+. El Sistema consulta el inventario completo de habitaciones y sus estados actuales en la base de datos. (Ver EX-01).
+. El Sistema despliega una vista gráfica (grid o lista) representando cada HABITACIÓN con un indicador visual de su estado.
+. El RECEPCIONISTA visualiza la información general o aplica filtros específicos para refinar la vista. (Ver FA 3.1).
+. El Sistema mantiene la vista actualizada en tiempo real.
+. Termina CU.
 Flujos Alternos::
-FA 1.1: Filtrar la vista
-. El recepcionista aplica filtros para ver solo habitaciones con un estado específico (ej. "Disponibles").
-. El sistema actualiza la vista para mostrar solo las habitaciones que cumplen el criterio.
+FA 3.1 Filtrado por estado específico
+. El RECEPCIONISTA selecciona un criterio de filtrado (ej. Solo "Sucias" o Solo "Disponibles").
+. El Sistema procesa el filtro y actualiza la vista mostrando únicamente las HABITACIONES que cumplen la condición.
+. El RECEPCIONISTA analiza la información filtrada.
+. Regresa al paso 4 del flujo normal.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
+. El sistema muestra al HUÉSPED el mensaje de error de conexión con la base de datos
+. El HUÉSPED cierra el mensaje
+. Termina CU
 Postcondiciones::
 Reglas de negocio::
-
-De acuerdo, continuamos.
-
-Aquí tienes la siguiente sección, que cubre la primera parte de los Casos de Uso del actor Administrador, enfocada en la gestión de hoteles y habitaciones (CU-13 al CU-24).
 
 Casos de Uso (Administrador - Gestión de Hoteles y Habitaciones)
 [#CU-13]
@@ -498,7 +612,7 @@ Flujo Normal::
 . El sistema muestra el formulario para el registro de un nuevo hotel.
 . El administrador ingresa los datos del hotel y confirma la acción.
 . El sistema valida que los datos estén completos y con el formato correcto. Verifica que no exista otro hotel con los mismos identificadores únicos, registra el nuevo hotel y muestra un mensaje de confirmación al Administrador.
-. Termina CU.
+. Termina CU
 Flujos Alternos::
 FA 3.1 Datos inválidos o incompletos:
 . Si el sistema verifica si hay errores en la validación, notifica al Administrador resaltando los campos incorrectos.
@@ -509,8 +623,8 @@ FA 3.2 Hotel duplicado:
 . El flujo regresa al paso 1.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
+. El sistema notifica al usuario que no hay conexión con la base de datos
+. Termina CU
 Postcondiciones:: PS-01: Se ha creado un nuevo registro de hotel en el sistema, disponible para la gestión de habitaciones y tarifas.
 Reglas de negocio::
 
@@ -521,24 +635,38 @@ ID:: CU-14
 Nombre:: Consultar información de hotel
 Autor:: Angel Jonathan Puch Hernández
 Fecha de actualización:: 03-oct-25
-Descripción:: Permite al Administrador buscar y visualizar los detalles de un hotel existente en el sistema.
-Actor(es):: Administrador
-Disparador:: El Administrador accede a la sección de Gestión de Hoteles.
-Precondiciones:: PR-01: Deben existir hoteles registrados en el sistema.
+Descripción:: Este caso de uso permite que el ADMINISTRADOR logre incorporar una nueva propiedad a la cadena mediante la captura de la información fiscal, ubicación y características generales. El resultado es la creación de un nuevo registro de HOTEL en el catálogo del Sistema, habilitándolo para la configuración de habitaciones.
+Actor(es):: ADMINISTRADOR
+Disparador:: El ADMINISTRADOR selecciona la opción "Registrar Nuevo Hotel" en el panel de configuración global.
+Precondiciones::
+PRE-01 El ADMINISTRADOR ha iniciado sesión con privilegios de superusuario en el Sistema.
 Flujo Normal::
-. El sistema muestra la interfaz de consulta, incluyendo una lista de hoteles y un campo de búsqueda.
-. El actor utiliza la búsqueda o selecciona un hotel directamente de la lista.
-. El sistema: Recupera y muestra en pantalla toda la información detallada del hotel seleccionado.
+. El Sistema despliega el formulario de registro para una nueva propiedad.
+. El ADMINISTRADOR ingresa los datos generales del HOTEL (Nombre, Dirección, Categoría, RFC/NIT).
+. El Sistema valida que los datos cumplan con el formato requerido y que los campos obligatorios estén completos. (Ver FA 3.1).
+. El Sistema verifica que no exista previamente un HOTEL registrado con el mismo identificador fiscal o nombre. (Ver FA 4.1).
+. El Sistema guarda el nuevo registro en la base de datos. (Ver EX-01).
+. El Sistema muestra un mensaje de "Hotel Registrado Exitosamente".
 . Termina CU.
 Flujos Alternos::
-FA 2.1 Búsqueda sin resultados:
-. Si el actor realiza una búsqueda y el sistema no encuentra ningún hotel que coincida, notifica al Administrador.
-. El flujo regresa al paso 1.
+FA 3.1 Datos inválidos o incompletos
+. El Sistema detecta errores de formato o campos vacíos obligatorios.
+. El Sistema resalta los campos afectados y muestra un mensaje de ayuda.
+. El ADMINISTRADOR corrige la información.
+. Regresa al paso 3 del flujo normal.
++
+FA 4.1 Hotel duplicado
+. El Sistema detecta que ya existe un HOTEL con el mismo nombre o identificador fiscal.
+. El Sistema muestra el mensaje "El Hotel ya se encuentra registrado" y bloquea el guardado.
+. El ADMINISTRADOR modifica los datos o cancela la operación.
+. Regresa al paso 2 del flujo normal.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01: El Administrador ha visualizado la información del hotel solicitado.
+. El sistema muestra al ADMINISTRADOR el mensaje de error de conexión con la base de datos
+. El ADMINISTRADOR cierra el mensaje
+. Termina CU
+Postcondiciones::
+POST-01 Existe un nuevo registro de HOTEL en la base de datos con estado "Activo".
 Reglas de negocio::
 
 [#CU-15]
@@ -551,21 +679,23 @@ Fecha de actualización:: 03-oct-25
 Descripción:: El administrador modifica los datos generales de un hotel previamente registrado en el sistema.
 Actor(es):: Administrador
 Disparador:: El Administrador selecciona la opción de editar un hotel existente.
-Precondiciones:: PR-01: El Administrador ha consultado previamente el hotel que desea modificar.
+Precondiciones::
+PR-01: El Administrador ha consultado previamente el hotel que desea modificar.
 Flujo Normal::
 . El sistema presenta un formulario con la información actual del hotel cargada en los campos editables.
 . El administrador modifica los campos deseados y confirma los cambios.
 . El sistema valida los datos modificados, los guarda en la base de datos y muestra un mensaje de confirmación.
-. Termina CU.
+. Termina CU
 Flujos Alternos::
 FA 3.1 Datos inválidos o incompletos:
 . Si el sistema verifica si hay errores en la validación, notifica al Administrador resaltando los campos incorrectos.
 . Se regresa al paso 1 del flujo normal, manteniendo la información ya ingresada.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01 La información del hotel ha sido actualizada en la base de datos.
+. El sistema notifica al usuario que no hay conexión con la base de datos
+. Termina CU
+Postcondiciones::
+POST-01 La información del hotel ha sido actualizada en la base de datos.
 Reglas de negocio::
 
 [#CU-16]
@@ -575,30 +705,34 @@ ID:: CU-16
 Nombre:: Desactivar hotel
 Autor:: Angel Jonathan Puch Hernández
 Fecha de actualización:: 03-oct-25
-Descripción:: Se cambia el estado de un hotel a "Inactivo" para que ya no esté disponible para nuevas reservaciones ni aparezca en consultas públicas. El registro se conserva en la base de datos por motivos de auditoría.
+Descripción:: Este caso de uso le permite al ADMINISTRADOR cambiar el estado de un HOTEL a "Inactivo". El HOTEL deja de estar disponible para nuevas búsquedas y reservaciones, pero su historial financiero y operativo se conserva por auditoría.
 Actor(es):: Administrador
-Disparador:: El Administrador selecciona la opción de desactivar un hotel existente.
+Disparador:: El ADMINISTRADOR selecciona la opción "Desactivar" en el perfil de un hotel existente.
 Precondiciones::
+PR-01: El HOTEL existe en el sistema y está en estado "Activo".
+PR-02: El ADMINISTRADOR tiene permisos de superusuario.
 Flujo Normal::
-. El sistema verifica que el hotel no tenga reservaciones futuras. Al no encontrar ninguna, muestra un diálogo de confirmación, advirtiendo que la acción ocultará el hotel del sistema público.
-. El administrador confirma la desactivación.
-. El sistema cambia el estado del hotel a "Inactivo" en la base de datos y muestra un mensaje de éxito.
+. El Sistema verifica si existen RESERVACIONES futuras confirmadas asociadas a este HOTEL y al no encontrar conflictos, el Sistema muestra una advertencia indicando que el HOTEL desaparecerá de los canales de venta. (Ver FA 1.1)
+. El ADMINISTRADOR confirma la operación e ingresa un motivo de desactivación. (Ver FA 2.1)
+. El Sistema actualiza el estado del HOTEL a "Inactivo", registra la fecha y usuario responsable, y muestra un mensaje de éxito. (Ver EX-01)
+. Termina el CU.
 Flujos Alternos::
-FA 1.1 Hotel con reservaciones futuras:
-. Si el sistema detecta que existen reservaciones futuras para este hotel, bloquea la acción. Muestra un mensaje al Administrador indicando: "La desactivación no es posible. El hotel tiene [X] reservaciones futuras. Por favor, proceda con la reubicación o cancelación de estas antes de intentar desactivarlo nuevamente."
-. Termina CU.
+FA 1.1 HOTEL con reservaciones futuras:
+. Si el sistema detecta que existen RESERVACIONES futuras para este HOTEL, bloquea la acción. Muestra un mensaje al ADMINISTRADOR indicando: "La desactivación no es posible. El hotel tiene [X] reservaciones futuras. Por favor, proceda con la reubicación o cancelación de estas antes de intentar desactivarlo nuevamente."
+. Termina CU
 +
 FA 2.1 Cancelación del usuario:
-. El administrador decide no desactivar el hotel y cancela la operación en el diálogo de confirmación.
+. El ADMINISTRADOR decide no desactivar el HOTEL y cancela la operación en el diálogo de confirmación.
 . Termina CU.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01 El estado del hotel se actualiza a "Inactivo". El hotel ya no es visible para los huéspedes y no se pueden realizar nuevas reservaciones en él. Todos los datos históricos se conservan.
+. El sistema notifica al usuario que no hay conexión con la base de datos
+. Termina CU
+Postcondiciones::
+POST-01 El estado del HOTEL se actualiza a "Inactivo". El HOTEL ya no es visible para los HUÉSPEDES y no se pueden realizar nuevas RESERVACIONES en él. Todos los datos históricos se conservan.
 Reglas de negocio::
-RN-01 Por políticas de auditoría, los registros de hoteles no se eliminan fisicamente, solo se desactivan.
-RN-02 Un hotel con reservaciones futuras no puede ser desactivado. La resolución manual de estas reservas (reubicación o cancelación) es un prerrequisito para la desactivación.
+RN-01 Por políticas de auditoría, los registros de hoteles no se eliminan físicamente, solo se desactivan.
+RN-02 Bloqueo por Dependencia: No se puede desactivar una entidad padre (Hotel) si tiene entidades hijas activas con compromisos comerciales (Reservas futuras).
 
 [#CU-17]
 === CU-17: Registrar tipo de habitación
@@ -607,29 +741,32 @@ ID:: CU-17
 Nombre:: Registrar tipo de habitación
 Autor:: Angel Jonathan Puch Hernández
 Fecha de actualización:: 03-oct-25
-Descripción:: Crea una nueva categoría de habitación (ej. Sencilla, Doble, Suite) con sus características generales.
+Descripción:: Este caso de uso le permite al ADMINISTRADOR crear un nuevo TIPO de HABITACIÓN(ej. Junior Suite, Doble, King) definiendo sus capacidades y características para ser asignada posteriormente al inventario físico.
 Actor(es):: Administrador
-Disparador:: El Administrador selecciona la opción Registrar Tipo de Habitación.
+Disparador:: El ADMINISTRADOR selecciona "Nuevo Tipo de Habitación".
 Precondiciones::
+PR-01: El catálogo de servicios y amenidades está cargado.
 Flujo Normal::
-. El sistema muestra el formulario para registrar una nueva categoría de habitación.
-. El administrador ingresa los datos del nuevo tipo de habitación y confirma.
-. El sistema valida los datos, verifica que el nombre no esté duplicado, guarda el registro y muestra un mensaje de confirmación.
+. El sistema muestra el formulario para registrar un nuevo TIPO de HABITACIÓN.
+. El ADMINISTRADOR ingresa los datos del nuevo TIPO de HABITACIÓN (Nombre, Descripción, Capacidad Base, Capacidad Máxima y Amenidades) y confirma.
+. El Sistema valida que la Capacidad Máxima >= Capacidad Base, verifica que el nombre no esté duplicado, guarda el registro y muestra un mensaje de confirmación. (Ver FA 3.1) (Ver FA 3.2) (Ver EX-01)
 . Termina CU.
 Flujos Alternos::
-FA 3.1 Datos inválidos:
-. Si los datos son incorrectos, el sistema notifica al Administrador para que los corrija.
-. Se regresa al paso 1 del flujo normal.
+FA 3.1 Inconsistencia de Capacidad:
+. El Sistema detecta que la Capacidad Base es mayor a la Máxima y muestra error: "La capacidad base no puede exceder la capacidad máxima configurada".
+. Se regresa al paso 1 del flujo normal
 +
-FA 3.2 Tipo de habitación duplicado:
-. Si el nombre ya existe, el sistema informa al Administrador.
+FA 3.2 Nombre duplicado:
+. Si el nombre ya existe, el sistema informa al ADMINISTRADOR y solicita cambio de nombre.
 . Se regresa al paso 1 del flujo normal.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01 Se ha creado una nueva categoría de habitación, disponible para ser asignada a habitaciones fisicas.
+. El sistema notifica al usuario que no hay conexión con la base de datos
+. Termina CU
+Postcondiciones::
+POST-01: Se crea un nuevo TIPO de HABITACIÓN lista para asociarse a tarifas y HABITACIONES físicas.
 Reglas de negocio::
+RN-01 Unicidad: El nombre del TIPO de HABITACIÓN debe ser único por HOTEL.
 
 [#CU-18]
 === CU-18: Consultar tipos de habitación
@@ -638,23 +775,34 @@ ID:: CU-18
 Nombre:: Consultar tipos de habitación
 Autor:: Aldo Antonio Campos Gómez
 Fecha de actualización:: 03-oct-25
-Descripción:: Muestra al Administrador la lista de todas las categorías de habitaciones existentes en el sistema.
-Actor(es):: Administrador
-Disparador:: El Administrador da clic en consultar tipos de habitación.
+Descripción:: Este CU permite que el Administrador logre consultar todos los tipos de habitación registrados mediante la recuperación y visualización de la lista de categorías de habitación existentes en el sistema. El resultado es que el Administrador obtiene visibilidad actualizada de la oferta de habitaciones para su gestión operativa
+Actor(es):: Administrador Hotelero
+Disparador:: El Administrador selecciona "Tipos de Habitación"
 Precondiciones::
+PRE-01: El Administrador ha iniciado sesión exitosamente
 Flujo Normal::
-. El sistema recupera y muestra una lista con todos los tipos de habitación registrados y sus datos principales.
-. El administrador visualiza la lista.
-. Termina CU.
+. El Sistema muestra un formulario de búsqueda con filtros obligatorios (HOTEL, Rango de Capacidad) y opcionales (Nombre de categoría).
+. El ADMINISTRADOR introduce los criterios de filtrado para acotar la consulta
+. El Sistema valida que los criterios de búsqueda cumplan con el formato esperado. (Ver FA 3.1).
+. El Sistema recupera y muestra el catálogo de TIPOSHABITACION (nombre, capacidadMaxima, camas y estado) que coinciden con los filtros ingresados. (Ver FA 4.1). (Ver EX-01).
+. El administrador visualiza el catálogo.
+. Termina CU
 Flujos Alternos::
-FA 1.1 No existen tipos de habitación:
-. Si el sistema no encuentra registros, muestra un mensaje indicándolo junto con una opción para crear uno nuevo.
-. Termina CU.
+FA 3.1 Criterios de búsqueda inválidos
+. El sistema detecta caracteres no permitidos o formatos erróneos en los filtros.
+. El Sistema marca los campos erróneos y muestra un mensaje de validación.
+. El flujo regresa al paso 2 del Flujo Normal.
++
+FA 4.1 No se encontraron coincidencias:
+. El Sistema determina que no existen tipos de habitación que coincidan con los filtros aplicados.
+. El Sistema muestra un mensaje informativo "Sin resultados" y sugiere cambiar los criterios de búsqueda.
+. El flujo regresa al paso 2 del Flujo Normal.
 Excepciones::
-EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01 El Administrador ha visualizado la lista de tipos de habitación.
+EX-01. No hay conexión con la base de datos
+. El sistema muestra al ADMINISTRADOR un mensaje notificando que se perdió la conexión con la base de datos
+. El ADMINISTRADOR cierra el mensaje
+. Termina CU
+Postcondiciones::
 Reglas de negocio::
 
 [#CU-19]
@@ -664,25 +812,48 @@ ID:: CU-19
 Nombre:: Actualizar tipo de habitación
 Autor:: Angel Jonathan Puch Hernández
 Fecha de actualización:: 03-oct-25
-Descripción:: El administrador modifica las características de un tipo de habitación existente.
+Descripción:: Este caso permite que el ADMINISTRADOR logre modificar los atributos descriptivos y reglas de capacidad de un TIPOHABITACION existente mediante la edición validada contra RESEVAs futuras. El resultado es la actualización consistente del catálogo de venta sin violar contratos de RESERVAs ya adquiridas.
 Actor(es):: Administrador
-Disparador:: El Administrador selecciona la opción de editar un tipo de habitación de la lista.
-Precondiciones:: PR-01: Ya deben de haber registros de tipos de habitación.
+Disparador:: El ADMINISTRADOR selecciona la acción "Editar" sobre un registro específico en la vista de lista de TIPOSHABITACION (procedente del CU-18).
+Precondiciones::
+PRE-01: El Administrador ha iniciado sesión exitosamente
+PRE-02: El registro del tipo de habitación existe y está activo.
 Flujo Normal::
-. El sistema presenta un formulario con los datos actuales del tipo de habitación.
-. El actor modifica los datos y confirma los cambios.
-. El sistema valida los nuevos datos, los guarda y muestra un mensaje de confirmación.
-. Termina CU.
+. El Sistema recupera los datos actuales de TIPOHABITACION (Nombre, Descripción, Capacidad Base, Capacidad Máxima). (VER EX-01)
+. El Sistema muestra un formulario de edición precargado con los datos de ese TIPOHABITACION.
+. El ADMINSTRADOR modifica los atributos necesarios y confirma la operación
+. El Sistema valida que la información ingresada cumpla con el formato esperado. (Ver FA-4.1)
+. El Sistema valida que los cambios no entren en conflicto con reservas futuras activas asociadas a este tipo. (Ver FA 5.1)
+. El Sistema verifica que el registro no haya sido modificado por otro usuario mientras se editaba. (Ver EX-02)
+. El sistema guarda los nuevos datos en la base de datos y confirma la actualización exitosa (Ver EX-01)
+. Termina CU
 Flujos Alternos::
-FA 3.1 Datos inválidos:
-. Si los datos son incorrectos, el sistema notifica al Administrador para que los corrija.
-. Se regresa al paso 1 del flujo normal.
+FA-4.1 Validación de formato fallida
+. El Sistema detecta campos vacíos obligatorios o valores ilógicos.
+. El Sistema resalta los errores y solicita corrección.
+. Regresa al paso 3.
++
+FA-5.1 Conflicto de integridad
+. El Sistema detecta que la reducción de capacidad viola reservas futuras que tienen 3 o 4 huéspedes registrados en este tipo de habitación.
+. El Sistema bloquea la operación y muestra una alerta crítica: "No se puede reducir la capacidad: Existen [X] reservas futuras afectadas".
+. El Sistema sugiere crear un nuevo tipo de habitación en lugar de modificar el actual o cancelar las reservas afectadas manualmente.
+. Regresa al paso 3.
 Excepciones::
-EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01 La información del tipo de habitación ha sido actualizada.
+EX-01. No hay conexión con la base de datos
+. El sistema muestra al ADMINISTRADOR un mensaje notificando que se perdió la conexión con la base de datos
+. El ADMINISTRADOR cierra el mensaje
+. Termina CU
++
+EX-02 Conflicto de concurrencia
+. El Sistema detecta que alguien más modificó el registro milisegundos antes.
+. El Sistema lanza un error: "El registro ha sido modificado por otro usuario. Por favor, recargue la página".
+. El Sistema fuerza la recarga de los datos nuevos.
+. Regresa al paso 2.
+Postcondiciones::
+POST-01: Los atributos del tipo de habitación reflejan los nuevos valores en la base de datos.
 Reglas de negocio::
+RN-03: Los cambios de nombre o descripción no afectan a los recibos o facturas de estancias pasadas (histórico debe conservarse)
+RN-04: La capacidadBase siempre debe ser menor o igual a capacidadMaxima
 
 [#CU-20]
 === CU-20: Desactivar tipo de habitación
@@ -691,29 +862,41 @@ ID:: CU-20
 Nombre:: Desactivar tipo de habitación
 Autor:: Angel Jonathan Puch Hernández
 Fecha de actualización:: 03-oct-25
-Descripción:: Cambia el estado de un tipo de habitación a "Inactivo" para que no pueda ser asignado a nuevas habitaciones. El registro se conserva en la base de datos para mantener la integridad de los datos históricos.
-Actor(es):: Administrador
-Disparador:: El Administrador selecciona la opción desactivar un tipo de habitación.
-Precondiciones:: PR-01: Existen tipos de habitaciones registradas en el sistema.
+Descripción:: Este CU permite que el ADMINISTRADOR logre desactivar un TIPO HABITACIÓN del catálogo operativo mediante la validación de que dicho tipo no esté en uso y la actualización de su estado a “Inactivo”. El resultado es la prevención de nuevas asignaciones de ese TIPO HABITACIÓN sin afectar la integridad de los datos históricos.
+Actor(es):: ADMINISTRADOR
+Disparador:: El ADMINISTRADOR selecciona la acción "Desactivar" en el panel de detalle de un TIPO HABITACIÓN.
+Precondiciones::
+PRE-01: El tipo de habitación se encuentra en estado "Activo".
 Flujo Normal::
-. El sistema verifica que el tipo de habitación no esté actualmente en uso (asignado a ninguna habitación fisica). Al no encontrar ninguna, muestra un diálogo de confirmación.
-. El administrador confirma la desactivación.
-. El sistema cambia el estado del tipo de habitación a "Inactivo" en la base de datos y muestra un mensaje de éxito.
-. Termina CU.
+. El Sistema verifica que no existan HABITACIONes vinculadas actualmente a ese tipo (Ver FA-1.1)
+. El sistema verifica que no existan RESERVAs futuras activas asociadas a este TIPO HABITACIÓN (Ver FA-2.1)
+. El Sistema solicita una confirmación con una advertencia de irreversibilidad temporal.
+. El ADMINISTRADOR confirma la operación
+. El Sistema actualiza el estado de registro a INACTIVO (Ver EX-01)
+. El Sistema retira el TIPO HABITACIÓN de los canales de venta
+. Termina CU
 Flujos Alternos::
-FA 1.1 Tipo de habitación en uso:
-. Si el sistema detecta que este tipo está asignado a una o más habitaciones, bloquea la acción. Muestra un mensaje al Administrador: "La desactivación no es posible. Este tipo está asignado a [X] habitaciones. Por favor, reasigne estas habitaciones a otro tipo antes de continuar."
-. Termina CU.
+FA 1.1 Dependencia de inventario físico:
+. El sistema detecta que existen [N] HABITACIONes físicas configuradas con este tipo
+. El Sistema bloquea la acción y muestra: “Error de integridad. Existen [N] habitaciones físicas de este tipo, debe reasignarlas a otra categoría en el módulo ‘Gestión de habitaciones’ antes de continuar.
+. Termina CU
 +
-FA 2.1 Cancelación del usuario:
-. El actor decide no continuar y cancela la operación en el diálogo de confirmación.
-. Termina CU.
+FA 2.1 Dependencia de reservas futuras
+. El Sistema detecta que existen RESERVAs confirmadas para fechas futuras que solicitaron este TIPO HABITACION
+. El Sistema bloquea la acción
+. El sistema muestra: “Bloque operativo: Existen RESERVAs pendientes para este tipo. No se puede desactivar hasta que se cumplan las ESTANCIAs o se migren las RESERVAs a otra categoría”
+. Termina CU
 Excepciones::
-EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01 El estado del tipo de habitación se actualiza a "Inactivo". Ya no aparecerá en las opciones para asignar a habitaciones nuevas o existentes.
-Reglas de negocio:: RN-01: Un tipo de habitación que esté asignado a una o más habitaciones fisicas no puede ser desactivado. Se debe reasignar cada habitación afectada antes de proceder.
+EX-01. No hay conexión con la base de datos
+. El sistema muestra al ADMINISTRADOR un mensaje notificando que se perdió la conexión con la base de datos
+. El ADMINISTRADOR cierra el mensaje
+. Termina CU
+Postcondiciones::
+POST-01: El tipo de habitación tiene estado INACTIVO.
+POST-02: El tipo de habitación ya no es visible en el motor de búsqueda de reservas
+Reglas de negocio::
+RN-01: Un TIPO HABITACIÓN que esté asignado a una o más HABITACIONes físicas no puede ser desactivado. Se debe reasignar cada HABITACIÓN afectada antes de proceder.
+RN-02: Un TIPO HABITACIÓN desactivado puede ser reactivado, pero debe pasar nuevamente por validación de TARIFA antes de venderse.
 
 [#CU-21]
 === CU-21: Registrar habitación
@@ -722,27 +905,36 @@ ID:: CU-21
 Nombre:: Registrar habitación
 Autor:: Angel Jonathan Puch Hernández
 Fecha de actualización:: 03-oct-25
-Descripción:: El administrador añade una habitación física al inventario de un hotel, asignándole un tipo.
-Actor(es):: Administrador
-Disparador:: El Administrador selecciona añadir habitación en la gestión de un hotel.
-Precondiciones:: PR-01: Deben existir hoteles y tipos de habitación.
+Descripción:: Este caso permite que el ADMINISTRADOR logre incrementar el inventario vendible mediante el registro de una HABITACIÓN física y su vinculación a un TIPO HABITACIÓN. El resultado es la disponibilidad inmediata de la unidad.
+Actor(es):: ADMINISTRADOR
+Disparador:: El ADMINISTRADOR selecciona "Nueva Habitación" dentro del módulo de Gestión de Inventario de un HOTEL específico.
+Precondiciones::
+PRE-01: El HOTEL al que se añadirá la habitación está en estado "Operativo".
+PRE-02: El TIPO HABITACIÓN a asignar existe y está "Activo"
 Flujo Normal::
-. El sistema muestra el formulario para registrar una nueva habitación, permitiendo seleccionar el hotel y el tipo de habitación de listas desplegables.
-. El actor completa los datos y confirma.
-. El sistema valida los datos, verifica que el número no esté duplicado en el hotel, guarda la habitación y confirma la operación.
+. El Sistema recupera el idHotel del contexto actual y muestra un formulario con los campos para ingresar la información de la HABITACIÓN (número, piso, TIPO HABITACIÓN, comodidades, estado)
+. El ADMINISTRADOR introduce la información y confirma el registro
+. El sistema valida que la información ingresada cumpla con el formato esperado. (Ver FA-3.1)
+. El Sistema verifica que la HABITACIÓN (idHotel + numeroHabitacion) no exista ya en la base de datos (Ver FA-4.1)
+. El sistema guarda la HABITACIÓN y confirma la operación. (Ver EX-01)
+. Termina CU
 Flujos Alternos::
-FA 3.1 Datos inválidos:
-. Si los datos son incorrectos, el sistema lo notifica.
-. Regresa al paso 1 del flujo normal, manteniendo la información ya ingresada.
+FA-3.1 Validación de formato fallida
+. El Sistema detecta campos vacíos obligatorios o valores ilógicos.
+. El Sistema resalta los errores y solicita corrección.
+. Regresa al paso 2.
 +
-FA 3.2 Habitación duplicada:
-. Si el número ya existe en ese hotel, el sistema lo informa.
-. Regresa al paso 1 del flujo normal.
+FA 4.1 HABITACIÓN duplicada:
+. El Sistema detecta que ya está esa HABITACIÓN registrada
+. El Sistema muestra error: “El número de habitación ya existe en esta propiedad”
+. Regresa al paso 2 del flujo normal
 Excepciones::
-EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01 Se ha añadido una nueva habitación al inventario de un hotel.
+EX-01. No hay conexión con la base de datos
+. El sistema muestra al ADMINISTRADOR un mensaje notificando que se perdió la conexión con la base de datos
+. El ADMINISTRADOR cierra el mensaje
+. Termina CU
+Postcondiciones::
+POST-01 Existe un nuevo registro en la tabla HABITACIÓN
 Reglas de negocio::
 
 [#CU-22]
@@ -752,24 +944,28 @@ ID:: CU-22
 Nombre:: Consultar estado de habitación
 Autor:: Angel Jonathan Puch Hernández
 Fecha de actualización:: 03-oct-25
-Descripción:: El administrador revisa los detalles y el estado actual de una habitación (Disponible, Ocupada, etc.).
-Actor(es):: Administrador
-Disparador:: El administrador busca una habitación por su número dentro de un hotel.
-Precondiciones:: PR-01: La habitación debe de existir.
+Descripción:: Este CU permite que el ADMINISTRADOR logre consultar el estado y los detalles de una HABITACIÓN específica mediante la búsqueda de la HABITACIÓN por número y la visualización de su información registrada. El resultado es que el ADMINISTRADOR obtiene claridad sobre la disponibilidad y condiciones actuales de la HABITACIÓN para apoyar la gestión operativa.
+Actor(es):: ADMINISTRADOR
+Disparador:: El ADMINISTRADOR selecciona la opción "Buscar Habitación" dentro de la barra de herramientas del Panel de Gestión del HOTEL.
+Precondiciones::
+PRE-01: El ADMINISTRADOR tiene una sesión activa y ha seleccionado un HOTEL de Contexto.
 Flujo Normal::
-. El sistema presenta una interfaz para seleccionar un hotel y buscar una habitación.
-. El actor introduce el número de la habitación y busca.
-. El sistema muestra los detalles de la habitación, incluyendo su estado.
-. Termina CU.
+. El Sistema habilita el campo de entrada "Número de Habitación", manteniendo el idHotel del contexto actual en memoria.
+. El ADMINISTRADOR ingresa el número de la habitación y ejecuta la búsqueda.
+. El sistema recupera la información del Hotel y muestra los detalles del estado operativo unificado (estado físico y estado de ocupación) (Ver FA-3.1) (Ver EX-01)
+. Termina CU
 Flujos Alternos::
 FA 3.1 Habitación no encontrada:
-. Si no se encuentra la habitación, el sistema lo notifica.
-. Regresa al paso 1 del flujo normal.
+. El Sistema verifica que el número ingresado no corresponde a ninguna HABITACIÓN activa asociada al idHotel actual.
+. El Sistema muestra el mensaje de error: "La habitación ingresada no existe en esta propiedad."
+. El Sistema limpia el campo de búsqueda y regresa al paso 1 de flujo normal
 Excepciones::
-EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01 El actor ha visualizado el estado y los detalles de la habitación.
+EX-01. No hay conexión con la base de datos
+. El sistema muestra al ADMINISTRADOR un mensaje notificando que se perdió la conexión con la base de datos
+. El ADMINISTRADOR cierra el mensaje
+. Termina CU
+Postcondiciones::
+POST-01 El actor ha visualizado el estado y los detalles de la habitación y no se generan cambios en la base de datos
 Reglas de negocio::
 
 [#CU-23]
@@ -779,27 +975,38 @@ ID:: CU-23
 Nombre:: Actualizar estado de habitación
 Autor:: Angel Jonathan Puch Hernández
 Fecha de actualización:: 03-oct-25
-Descripción:: Permite cambiar el estado de una habitación (ej. a "En Mantenimiento").
+Descripción:: Este caso permite que el ADMINISTRADOR logre actualizar la condición operativa de la HABITACIÓN mediante la ejecución de transiciones de estado validadas por reglas de negocio. El resultado es la liberación inmediata de inventario para venta o el bloqueo preventivo por averías.
 Actor(es):: Administrador
-Disparador:: El administrador selecciona la opción de cambiar estado en la vista de una habitación.
-Precondiciones:: PR-01: Debe de existir la habitación a cambiar su estado.
+Disparador:: El Actor selecciona una HABITACIÓN específica desde el Dashboard Operativo del HOTEL activo
+Precondiciones::
+PRE-01: Existe una sesión activa con un idHotel seleccionado y validado
+RE-03: La HABITACIÓN no está siendo procesada por una transacción financiera (Check-in/Check-out).
 Flujo Normal::
-. El sistema muestra una lista de los estados válidos a los que puede cambiar la habitación.
-. El actor selecciona el nuevo estado y confirma el cambio.
-. El sistema valida la transición, actualiza el estado y muestra un mensaje de confirmación.
+. El Sistema captura el identificador de la HABITACIÓN seleccionada (idHabitacion) y lo combina con el idHotel del contexto actual.
+. El Sistema recupera y muestra la información de la HABITACIÓN (estado, número, piso, TIPOHABITACION). (Ver EX-01)
+. El sistema muestra las opciones de cambio de estado disponibles en una lista desplegable.
+. El ADMINISTRADOR selecciona el nuevo estado y confirma el cambio. (Ver FA-4.1)
+. El Sistema verifica que el bloqueo de la HABITACIÓN no afecte a una llegada programada para el dia actual (Ver FA5.1)
+. El Sistema guarda el nuevo estado en la base de datos. (Ver EX-01)
+. Termina CU
 Flujos Alternos::
-FA 3.1 Transición de estado no permitida:
-. Si el sistema detecta que el cambio de estado no es válido (ej. poner en mantenimiento una habitación ocupada), bloquea la acción y notifica la razón.
-. Termina CU.
-Excepciones::
-EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
+FA-4.1: Cambio estado “Fuera de servicio
+. Si el estado seleccionado es “Fuera de servicio” o “Mantenimiento” el Sistema solicita un nota de observación
+. El ADMINISTRADOR ingresa la información
+. El flujo continua en el paso 5 del flujo normal
 +
-EX-01 Conflicto de estado:
-. Si el estado de la habitación fue modificado por otro proceso (ej. un check-in automático) mientras el actor decidía, el sistema lo detecta, cancela la operación y sugiere refrescar los datos.
-. Termina CU.
-Postcondiciones:: POST-01 El estado de la habitación ha sido actualizado en el sistema.
+FA-5.1: Conflicto con asignación inminente
+. El Sistema detecta una reserva activa con llegada “Hoy” asignada a esta HABITACIÓN
+. El Sistema bloquea la transición y muestra una alerta: “Conflicto operativo: Huésped asignado para hoy, Reasigne la reserva antes de bloquear”
+. Incluye el CU-Reasignar Habitación
+. Termina CU
+Excepciones::
+EX-01. No hay conexión con la base de datos
+. El sistema muestra al ADMINISTRADOR un mensaje notificando que se perdió la conexión con la base de datos
+. El ADMINISTRADOR cierra el mensaje
+. Termina CU
+Postcondiciones::
+POST-01 El estado de la HABITACIÓN ha sido actualizado en el sistema.
 Reglas de negocio::
 
 [#CU-24]
@@ -809,28 +1016,46 @@ ID:: CU-24
 Nombre:: Desactivar habitación
 Autor:: Angel Jonathan Puch Hernández
 Fecha de actualización:: 03-oct-25
-Descripción:: Cambia el estado de una habitación a inactiva, removiéndola del inventario disponible para reservaciones y check-in. Su registro histórico se conserva.
+Descripción:: Este caso permite que el ADMINISTRADOR logre disminuir la capacidad operativa del HOTEL mediante la inhabilitación permanente de una HABITACIÓN y su desvinculación del inventario comercial. El resultado es la actualización de la disponibilidad real para evitar la venta de activos inexistentes.
 Actor(es):: Administrador
-Disparador:: El Administrador selecciona la opción de desactivar una habitación específica.
+Disparador:: El ADMINISTRADOR selecciona la acción "Dar de Baja" desde la vista de Detalle de HABITACIÓN (Contexto activo).
 Precondiciones::
+PRE-02 (Contexto): La HABITACIÓN ha sido seleccionada previamente y el sistema retiene el par (idHotel, idHabitacion).
 Flujo Normal::
-. El sistema verifica que la habitación no esté en estado "Ocupada" y que no tenga reservaciones futuras asignadas. Al no encontrar conflictos, muestra un diálogo de confirmación.
-. El administrador confirma la desactivación.
-. El sistema cambia el estado de la habitación a "Inactiva" y muestra un mensaje de éxito.
+. El Sistema recupera el idHabitacion del contexto y bloquea temporalmente el registro para evitar modificaciones concurrentes.
+. El Sistema valida que el estado operativo actual sea “Limpia” y “Desocupada” (Ver FA-2.1)
+. El Sistema consulta las RESERVAs para detectar asignaciones futuras específicas vinculadas a esta HABITACIÓN. (Ver FA-3.1
+. El Sistema simula la reducción del inventario total y verifica si la nueva capacidad total soporta el volumen de reservas confirmadas, respetando el límite de Overbooking (Ver FA-4.1)
+. El Sistema solicita la confirmación explicita y el motivo de baja
+. El ADMINISTRADOR selecciona el motivo y confirma
+. El Sistema cambia el estado de la HABITACIÓN y actualiza el contador de inventario del HOTEL
+. Termina CU
 Flujos Alternos::
-FA 1.1 Habitación ocupada o con reservas futuras:
-. Si el sistema detecta que la habitación está actualmente ocupada o tiene asignada al menos una reserva futura, bloquea la acción. Muestra un mensaje al Administrador: "La desactivación no es posible. La habitación está ocupada o tiene reservas futuras. Por favor, asegúrese de que la habitación esté desocupada y sin reservas pendientes."
+FA-2.1. Bloquea por estado físico
+. El Sistema detecta que la HABITACIÓN está "OCUPADA" o "SUCIA".
+. El Sistema deniega la operación: "Imposible retirar activo: La unidad debe estar desocupada y procesada por Housekeeping."
 . Termina CU.
 +
-FA 2.1 Cancelación del usuario:
-. El actor decide no continuar y cancela la operación en el diálogo de confirmación.
+FA-3.1 Conflicto con asignación futura
+. El Sistema encuentra una reserva futura que tiene asignado específicamente este número de HABITACIÓN.
+. El Sistema muestra: "Conflicto de Integridad: La habitación está bloqueada por la reserva futura #[ID]. Desvincule la asignación antes de continuar."
 . Termina CU.
++
+FA-4.1: Alerta de riesgo de overbooking
+. El cálculo indica que al retirar la habitación, el nivel de ocupación superará el 110% permitido
+. El Sistema lanza Advertencia Crítica: "Retirar esta unidad provocará un nivel de sobreventa no autorizado del [X]%."
+. Termina CU
 Excepciones::
-EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01 El estado de la habitación se actualiza a "Inactiva". La habitación ya no forma parte del inventario disponible para la venta o asignación.
-Reglas de negocio:: RN-01: Una habitación física no puede ser desactivada si está ocupada o tiene reservaciones futuras. Estas condiciones deben resolverse antes de poder retirarla del inventario.
+EX-01. No hay conexión con la base de datos
+. El sistema muestra al ADMINISTRADOR un mensaje notificando que se perdió la conexión con la base de datos
+. El ADMINISTRADOR cierra el mensaje
+. Termina CU
+Postcondiciones::
+POST-01 El estado de la habitación se actualiza a "Inactiva".
+POST-02: La habitación desaparece de las búsquedas de disponibilidad y asignación
+Reglas de negocio::
+RN-01: Una habitación física no puede ser desactivada si está ocupada o tiene reservaciones futuras. Estas condiciones deben resolverse antes de poder retirarla del inventario.
+RN-02: La gestión de overbooking es crítica. No podemos permitir que una baja operativa rompa las reglas de venta automática.
 
 Casos de Uso (Administrador - Gestión de Personal, Tarifas y Políticas)
 [#CU-25]
@@ -840,29 +1065,36 @@ ID:: CU-25
 Nombre:: Registrar cuenta de personal
 Autor:: Aldo Antonio Campos Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: El Administrador crea un nuevo perfil de usuario para un miembro del personal (recepcionista o administrador), asignándole credenciales y permisos.
+Descripción:: Este caso permite que el ADMINISTRADOR logre crear un nuevo perfil operativo seguro para un colaborador (Recepcionista o Administrador) mediante el ingreso de sus datos y la asignación de roles. El resultado es el alta del colaborador en el sistema con credenciales encriptadas y permisos listos para operar.
 Actor(es):: Administrador
-Disparador:: El Administrador selecciona la opción "Registrar Nuevo Personal" desde el panel de administración.
+Disparador:: El ADMINISTRADOR selecciona la opción de registrar nuevo personal desde el panel de administración
 Precondiciones::
 Flujo Normal::
-. El sistema muestra un formulario para el registro de una nueva cuenta de personal, solicitando datos como nombre, puesto, correo electrónico y contraseña.
-. El Administrador ingresa los datos del nuevo usuario y confirma la acción.
-. El sistema valida los datos, verifica que el correo electrónico no esté duplicado, crea la cuenta con el rol asignado y muestra un mensaje de confirmación.
-. Termina CU.
+. El sistema muestra un formulario para el registro de una nueva cuenta de personal, solicitando los siguientes datos: nombre, apellido paterno, apellido materno, rol asignado, correo electrónico y contraseña.
+. El ADMINISTRADOR ingresa los datos del nuevo usuario y confirma la acción.
+. El Sistema valida que los campos obligatorios no estén vacíos y tengan un formato válido. (ver FA-3.1)
+. El Sistema consulta la base de datos para verificar que el correo electrónico no esté ya registrado (Ver FA-4.1) (Ver EX-01)
+. El Sistema registra la nueva cuenta en la base de datos vinculándola al rol seleccionado y muestra un mensaje de éxito (Ver EX-01)
+. Termina CU
 Flujos Alternos::
-FA 3.1: Datos inválidos o incompletos
-. El sistema notifica al huésped que ingresó datos inválidos.
-. Se regresa al paso 1 del flujo normal.
+FA-3.1 Validación de formato fallida
+. El Sistema detecta campos vacíos obligatorios o valores ilógicos.
+. El Sistema resalta los errores y solicita corrección.
+. Regresa al paso 2.
 +
-FA 3.2: Correo electrónico duplicado
-. Si el sistema detecta que el correo ya está en uso, informa al Administrador del duplicado y cancela la operación.
+FA 4.1 Correo electrónico duplicado
+. Si el sistema detecta que el correo ya está en uso e informa al Administrador del duplicado y cancela la operación.
 . Se regresa al paso 1 del flujo normal.
 Excepciones::
-EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01: Se ha creado una nueva cuenta de personal en el sistema y está lista para ser utilizada.
-Reglas de negocio:: RN-02: El rol asignado al usuario determinará su nivel de acceso y los permisos dentro del sistema.
+EX-01. No hay conexión con la base de datos
+. El sistema muestra al ADMINISTRADOR un mensaje notificando que se perdió la conexión con la base de datos
+. El ADMINISTRADOR cierra el mensaje
+. Termina CU
+Postcondiciones::
+POST-01: Se ha creado un nuevo registro de usuario con estado "Activo" en la base de datos.
+POST-02: El nuevo usuario puede ingresar al sistema inmediatamente con las credenciales registradas.
+Reglas de negocio::
+RN-02: No pueden existir dos cuentas con el mismo correo electrónico en toda la cadena hotelera.
 
 [#CU-26]
 === CU-26: Consultar cuentas de personal
@@ -871,29 +1103,44 @@ ID:: CU-26
 Nombre:: Consultar cuentas de personal
 Autor:: Aldo Antonio Campos Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Permite al Administrador buscar y visualizar los perfiles de los empleados registrados en el sistema.
+Descripción:: Este caso permite que el ADMINISTRADOR logre localizar y verificar la información operativa de los colaboradores registrados mediante criterios de búsqueda filtrada. El resultado es la visualización controlada de los perfiles para tareas de auditoría o gestión, sin comprometer el rendimiento del servido
 Actor(es):: Administrador
-Disparador:: El Administrador accede a la sección de "Gestión de Personal".
-Precondiciones:: PR-01: Deben existir cuentas de personal registradas en el sistema.
+Disparador:: El ADMINISTRADOR selecciona la opción de gestión de personal en el menú principal.
+Precondiciones::
+PRE-01: El ADMINISTRADOR está autenticado.
 Flujo Normal::
-. El sistema muestra la interfaz de consulta, incluyendo una lista del personal y un campo de búsqueda.
-. El Administrador utiliza la búsqueda o selecciona un usuario directamente de la lista.
-. El sistema recupera y muestra en pantalla la información detallada del perfil seleccionado.
-. El Administrador selecciona la opción Aceptar.
-. Finaliza el caso de uso.
+. El Sistema muestra un formulario para filtrar la búsqueda con el campo para ingresar el nombre, rol y HOTEL.
+. El ADMINISTRADOR ingresa los criterios de búsqueda y confirma la acción
+. El Sistema valida que los criterios de búsqueda tengan el formato correcto (Ver FA3.1)
+. El Sistema recupera de la base de datos los registros coincidentes de acuerdo a los filtros ingresados. (Ver FA-4.1) (Ver EX-01)
+. El Sistema muestra la lista de resultados mostrando el nombre, rol, hotel y estado.
+. El ADMINISTRADOR selecciona un registro específico para ver los detalles (Ver FA-6.1), (Ver FA-6.2)
+. El Sistema despliega la ficha completa del colaborador
+. Termina CU.
 Flujos Alternos::
-FA 2.1 : Búsqueda sin resultados
-. Si el Administrador realiza una búsqueda y el sistema no encuentra ningún usuario que coincida, se lo notifica.
-. Termina CU.
+FA-3.1 Validación de formato fallida
+. El Sistema detecta valores ilógicos.
+. El Sistema resalta los errores y solicita corrección.
+. Regresa al paso 2 de flujo normal.
 +
-FA 2.2 Administrador selecciona la opción Actualizar Cuenta
-. Extiende al CU-27 Actualizar Cuenta de Personal.
+FA 4.1: Búsqueda sin resultados
+. El Sistema muestra el mensaje: "No se encontraron colaboradores con los criterios especificados."
+. Regresa al paso 2 del flujo normal
++
+FA 6.1 Administrador selecciona la opción Actualizar Cuenta
+. Extiende al CU-27 Actualizar Cuenta de Personal
++
+FA-6.2 Administrador selecciona la opción Desactivar Cuenta
+. Extiende al CU-28 Desactivar cuenta de personal.
 Excepciones::
-EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
+EX-01. No hay conexión con la base de datos
+. El sistema muestra al ADMINISTRADOR un mensaje notificando que se perdió la conexión con la base de datos
+. El ADMINISTRADOR cierra el mensaje
+. Termina CU
 Postcondiciones::
+POST-01: El estado de los datos no se altera (Solo Lectura).
 Reglas de negocio::
+RN-01: La información sensible (como contraseñas o datos financieros personales) nunca debe mostrarse en la lista de resultados; las contraseñas deben permanecer ocultas o enmascaradas.
 
 [#CU-27]
 === CU-27: Actualizar cuenta de personal
@@ -902,54 +1149,80 @@ ID:: CU-27
 Nombre:: Actualizar cuenta de personal
 Autor:: Aldo Antonio Campos Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: El Administrador modifica los datos o permisos de un usuario del sistema previamente registrado.
-Actor(es):: Recepcionista
-Disparador:: El Administrador selecciona la opción de Actualizar Cuenta de Personal en el CU-26.
+Descripción:: Este caso permite que el ADMINISTRADOR logre mantener la integridad y vigencia de la información operativa del personal, modificando datos demográficos, credenciales o roles. El resultado es la actualización consistente del perfil en el directorio corporativo, asegurando que los permisos corresponden a la realidad actual del empleado
+Actor(es):: ADMINISTRADOR
+Disparador:: El ADMINISTRADOR selecciona la opción "Actualizar Cuenta" desde la vista de detalle del CU-26.
 Precondiciones::
+PRE-01: Se ha seleccionado un usuario válido en el CU-26 y el sistema retiene su ID.
 Flujo Normal::
 . El sistema presenta un formulario con la información actual del usuario cargada en campos editables (nombre, correo, rol, etc.).
-. El Administrador modifica los campos deseados y confirma los cambios.
-. El sistema valida los nuevos datos, los guarda en la base de datos y muestra un mensaje de confirmación de que la actualización fue exitosa.
-. Finaliza el caso de uso.
-Flujos Alternos::
-FA 3.1 Datos inválidos
-. El sistema notifica al Administrador que ingresó datos inválidos.
-. Se regresa al paso 1 del flujo normal.
-Excepciones::
-EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
+. El ADMINISTRADOR modifica los campos deseados y confirma los cambios.
+. El sistema valida que los nuevos datos cumplan con el formato y obligatoriedad (Ver FA-3.1)
+. El Sistema aplica una técnica de control de concurrencia para verificar que el registro no haya sido modificado por otro ADMINISTRADOR mientras este formulario estaba abierto (Ver FA-4.1)
+. El Sistema actualiza la información en la base de datos y muestra un mensaje de éxito (Ver EX-01)
 . Termina CU.
-Postcondiciones:: POST-01: La información de la cuenta de personal ha sido actualizada en la base de datos.
+Flujos Alternos::
+FA-3.1 Validación de formato fallida
+. El Sistema detecta campos vacíos obligatorios o valores ilógicos.
+. El Sistema resalta los errores y solicita corrección.
+. Regresa al paso 2.
++
+FA-5.1: Conflicto de Concurrencia
+. El Sistema detecta que la versión del registro en la base de datos es más reciente que la versión que el ADMINISTRADOR está intentando guardar (alguien más editó el registro hace instantes).
+. El Sistema deniega la escritura para evitar sobrescribir datos ajenos.
+. El Sistema notifica: "Error de Concurrencia: El registro fue modificado por otro usuario recientemente. Por favor, recargue los datos e intente de nuevo."
+. El Sistema ofrece la opción de recargar los datos actualizados.
+. Termina CU.
+Excepciones::
+EX-01. No hay conexión con la base de datos
+. El sistema muestra al ADMINISTRADOR un mensaje notificando que se perdió la conexión con la base de datos
+. El ADMINISTRADOR cierra el mensaje
+. Termina CU
+Postcondiciones::
+POST-01: La información de la cuenta de personal ha sido actualizada en la base de datos
 Reglas de negocio::
+RN-01: Un Administrador no puede cambiar el rol de su propia cuenta para quitarse permisos (evitar auto-bloqueo accidental), ni puede degradar el rol del "Administrador Principal" del sistema.
 
 [#CU-28]
-=== CU-28: Dar de baja cuenta personal
+=== CU-28: Desactivar cuenta de personal
 
 ID:: CU-28
-Nombre:: Dar de baja cuenta personal
+Nombre:: Desactivar cuenta de personal
 Autor:: José Luis Silva Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Desactiva el acceso de un empleado al sistema. La cuenta no se elimina fisicamente para mantener la integridad de los registros históricos y de auditoría.
+Descripción:: Este caso de uso le permite al ADMINISTRADOR revocar el acceso de un empleado al sistema cambiando su estado a inactivo, sin eliminar sus registros de actividad en bitácoras.
 Actor(es):: Administrador
-Disparador:: El Administrador selecciona el perfil de un usuario.
-Precondiciones:: PR-01: El Administrador ha iniciado sesión y ha localizado la cuenta de personal a desactivar.
+Disparador:: El ADMINISTRADOR selecciona la acción "Desactivar" desde la vista de detalle de un usuario (Contexto del CU-26).
+Precondiciones::
+PR-01: La cuenta de personal existe y está activa.
+PR-02: El administrador no puede desactivar su propia cuenta.
 Flujo Normal::
-. El sistema muestra los generales del usuario, así como las opciones del perfil de usuario.
-. El Administrador selecciona la opción "Dar de baja" en el perfil del usuario.
-. El sistema solicita una confirmación, advirtiendo que la acción bloqueará el acceso del usuario.
-. El Administrador confirma la acción.
-. El sistema cambia el estado de la cuenta a "Inactiva", registra la fecha y hora de la operación y muestra un mensaje de confirmación.
+. El Sistema verifica que la cuenta objetivo no corresponda al "Super Administrador" o al propio actor (Ver FA-1.1)
+. El Sistema solicita confirmación explícita mediante un mensaje de advertencia: "¿Está seguro de desactivar a [Nombre]? Esta acción cerrará sus sesiones activas inmediatamente."
+. El ADMINISTRADOR confirma la acción (Ver FA-3.1)
+. El Sistema cambia el estado del registro en la base de datos de "Activo" a "Inactivo" (Ver EX-01)
+. El Sistema ejecuta la táctica de seguridad "Revocación de Credenciales": Invalida cualquier token de sesión o cookie activa asociada a este usuario en la caché de autenticación.
+. El sistema muestra un mensaje de confirmación.
 . Termina el CU.
 Flujos Alternos::
-FA 3.1: El Administrador cancela la operación
-. El Administrador decide no continuar y cancelar la acción en el diálogo de confirmación.
+FA-1.1: Intento de Auto-bloqueo o Bloqueo Crítico
+. El Sistema detecta que el ID de la cuenta a desactivar coincide con el ID del usuario logueado o es una cuenta protegida.
+. El Sistema muestra el error: "Operación Denegada: Por seguridad, no puede desactivar su propia cuenta ni al Administrador Principal."
+. Termina CU.
++
+FA 3.1: El ADMINISTRADOR cancela la operación
+. El ADMINISTRADOR decide no continuar y cancelar la acción en el diálogo de confirmación.
 . Termina el CU.
 Excepciones::
-EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01: El acceso del empleado al sistema ha sido revocado.
+EX-01. No hay conexión con la base de datos
+. El sistema muestra al ADMINISTRADOR un mensaje notificando que se perdió la conexión con la base de datos
+. El ADMINISTRADOR cierra el mensaje
+. Termina CU
+Postcondiciones::
+POST-01: El usuario objetivo no puede iniciar sesión ni realizar peticiones autenticadas (recibirá error 401 Unauthorized).
 Reglas de negocio::
+RN-01: No se permite la desactivación de la propia cuenta del usuario logueado ni de la cuenta "Root" del sistema, para evitar dejar la aplicación sin administración ("System Lockout").
+RN-03: Al desactivar una cuenta, el sistema debe forzar el cierre de sesión (Logout) en todos los dispositivos donde el usuario tuviera acceso en ese instante.
 
 [#CU-29]
 === CU-29: Gestionar tarifa base
@@ -958,24 +1231,27 @@ ID:: CU-29
 Nombre:: Gestionar tarifa base
 Autor:: José Luis Silva Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Establece y modifica los precios estándar (base) para cada tipo de habitación registrado en el sistema.
+Descripción:: Este caso de uso le permite al ADMINISTRADOR definir el precio estándar por defecto (Rack Rate) para un TIPO de HABITACIÓN. Este precio se aplica si no existen reglas dinámicas específicas para una fecha.
 Actor(es):: Administrador
-Disparador:: El Administrador accede al panel de "Administración de Tarifas" y selecciona la opción "Gestionar Tarifas Base".
-Precondiciones:: PR-01: Deben existir tipos de habitación registrados en el sistema.
+Disparador:: El ADMINISTRADOR accede al panel de "Administración de Tarifas" y selecciona la opción "Gestionar Tarifas Base".
+Precondiciones::
+PR-01: Deben existir TIPOS de HABITACIÓN registrados en el sistema
 Flujo Normal::
-. El sistema muestra una lista de los tipos de habitación existentes con sus tarifas base actuales.
-. El Administrador selecciona un tipo de habitación, modifica su precio base en el campo correspondiente y guarda los cambios.
-. El sistema valida el nuevo valor, lo actualiza en la base de datos y muestra un mensaje de confirmación.
+. El sistema muestra una lista de los TIPOS de HABITACIÓN existentes con sus tarifas base actuales.
+. El ADMINISTRADOR selecciona un tipo de habitación, modifica su precio base en el campo correspondiente y guarda los cambios.
+. El sistema valida el nuevo valor, lo actualiza en la base de datos y muestra un mensaje de confirmación. (Ver FA 3.1) (Ver EX-01)
 . Termina el CU.
 Flujos Alternos::
-FA 3.1: Dato inválido
-. Si el Administrador ingresa un valor no numérico o negativo, el sistema muestra un error y no permite guardar.
-. El flujo regresa al paso 3.
+FA 3.1: Precio Inválido
+. El ADMINISTRADOR ingresa un valor no numérico o negativo.
+. El Sistema bloquea la acción y solicita un monto válido.
+. El flujo regresa al paso 2 del flujo normal.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01: La tarifa base para el tipo de habitación seleccionado ha sido actualizada.
+. El sistema notifica al usuario que no hay conexión con la base de datos
+. Termina CU
+Postcondiciones::
+POST-01: Las futuras consultas de disponibilidad usarán este nuevo precio base, a menos que exista una tarifa por día específica.
 Reglas de negocio::
 
 [#CU-30]
@@ -985,24 +1261,33 @@ ID:: CU-30
 Nombre:: Gestionar precio por día
 Autor:: José Luis Silva Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Ajusta las tarifas para fechas o periodos específicos para aplicar una estrategia de precios dinámicos, sobreescribiendo la tarifa base según la demanda.
+Descripción:: Este caso de uso le permite al ADMINISTRADOR establecer precios específicos para fechas de alta o baja demanda (temporadas, festivos), sobrescribiendo la tarifa base.
 Actor(es):: Administrador
-Disparador:: El Administrador selecciona la opción "Calendario de Tarifas" desde el panel de administración.
-Precondiciones:: PR-01: Deben existir tarifas base definidas para los tipos de habitación.
+Disparador:: El ADMINISTRADOR selecciona la opción "Calendario de Tarifas" desde el panel de administración.
+Precondiciones::
+PR-01: TIPOS de HABITACIÓN activos.
+PR-02: Deben existir tarifas base definidas para los TIPOS de HABITACIÓN.
 Flujo Normal::
-. El sistema muestra un calendario y un seleccionador de "tipo de habitación".
-. El Administrador selecciona una o varias fechas y un tipo de habitación. Además, ingresa el nuevo precio para las fechas seleccionadas y confirma.
-. El sistema guarda la excepción de tarifa y actualiza la vista del calendario para reflejar el cambio.
+. El sistema muestra un calendario y un seleccionador de “tipo de habitación”.
+. El ADMINISTRADOR selecciona un rango de fechas (Inicio - Fin) y un TIPO de HABITACIÓN. Además, ingresa el nuevo precio para las fechas seleccionadas y confirma. (Ver FA 2.1)
+. El Sistema valida la coherencia de fechas (Inicio <= Fin) y precio positivo, guarda la excepción de tarifa y actualiza la vista del calendario para reflejar el cambio. (Ver FA 3.1) (Ver EX-01)
 . Termina el CU.
 Flujos Alternos::
 FA 2.1: Eliminar precio dinámico
-. El Administrador selecciona una fecha con un precio modificado y elige la opción para restaurar la tarifa base.
+. El ADMINISTRADOR selecciona una fecha con un precio modificado y elige la opción para restaurar la tarifa base.
 . El sistema elimina el precio específico para esa fecha, volviendo a aplicar la tarifa base.
+. Termina el CU.
++
+FA 3.1: Conflicto de Fechas
+. Si ya existe una tarifa especial en las fechas seleccionadas, el Sistema pregunta si desea sobrescribirla.
+. Si el ADMINISTRADOR acepta, se actualiza el valor. Si no, cancela la operación.
+. Termina el CU.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01: El sistema aplicará los precios definidos para las fechas específicas en lugar de la tarifa base.
+. El sistema notifica al usuario que no hay conexión con la base de datos
+. Termina CU
+Postcondiciones::
+POST-01: El sistema aplicará los precios definidos para las fechas específicas en lugar de la tarifa base.
 Reglas de negocio::
 
 [#CU-31]
@@ -1012,25 +1297,28 @@ ID:: CU-31
 Nombre:: Consultar historial de tarifas
 Autor:: Jóse Luis Silva Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Permite revisar los precios que fueron aplicados en fechas pasadas para un tipo de habitación, facilitando la auditoría y el análisis de estrategias.
+Descripción:: Este caso de uso le permite al ADMINISTRADOR visualizar cómo han cambiado los precios en el tiempo y qué tarifa estaba vigente en una fecha pasada específica.
 Actor(es):: Administrador
-Disparador:: El Administrador accede al módulo de tarifas y selecciona la opción "Consultar Historial de Tarifas".
-Precondiciones:: PR-01: El sistema debe tener un registro de las tarifas aplicadas.
+Disparador:: El ADMINISTRADOR accede al módulo de tarifas y selecciona la opción "Consultar Historial de Tarifas".
+Precondiciones::
+PR-01: El sistema debe tener un registro de las tarifas aplicadas.
 Flujo Normal::
-. El sistema muestra la sección "Historial de Tarifas".
-. El Administrador selecciona un rango de fechas y un tipo de habitación para consultar.
-. El sistema busca en los registros y muestra un listado de las tarifas aplicadas día por día en el periodo seleccionado, indicando si fue tarifa base o un precio dinámico.
+. El Sistema solicita rango de fechas y TIPO de HABITACIÓN a consultar.
+. El ADMINISTRADOR selecciona un rango de fechas y un TIPO de HABITACIÓN para consultar.
+. El sistema busca en los registros y muestra una tabla con: Fecha Aplicación, Monto, Tipo (Base/Dinámica), Usuario que modificó y Fecha de modificación. (Ver FA 3.1) (Ver EX-01)
 . Termina el CU.
 Flujos Alternos::
 FA 3.1: No se encuentran datos
-. Si no hay registros para el periodo o tipo de habitación consultado, el sistema muestra un mensaje informativo.
+. Si no hay registros para el periodo o TIPO de HABITACIÓN consultado, el sistema muestra "No hay historial disponible".
 . Termina el CU.
 Excepciones::
 EX-01 Sin conexión con la base de datos
 . El sistema notifica al usuario que no hay conexión con la base de datos.
 . Termina CU.
-Postcondiciones:: POST-01: El Administrador ha visualizado los datos históricos de las tarifas.
+Postcondiciones::
+POST-01: El Administrador ha visualizado los datos históricos de las tarifas.
 Reglas de negocio::
+RN-01 Inmutabilidad: El historial de tarifas es de solo lectura.
 
 [#CU-32]
 === CU-32: Gestionar política de overbooking
@@ -1039,24 +1327,32 @@ ID:: CU-32
 Nombre:: Gestionar política de overbooking
 Autor:: José Luis Silva Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Configura el porcentaje o número de habitaciones adicionales que se pueden vender por encima del inventario fisico para cada tipo de habitación.
+Descripción:: Este caso de uso le permite al ADMINISTRADOR configurar el porcentaje permitido de sobreventa para TIPOS de HABITACIÓN específicos, para mitigar el riesgo de cancelaciones y no-shows.
 Actor(es):: Administrador
-Disparador:: El Administrador accede al panel de "Administración de Políticas" y selecciona la opción "Gestionar Política de Overbooking".
-Precondiciones:: PR-01: Deben existir tipos de habitación registrados en el sistema.
+Disparador:: El ADMINISTRADOR accede al panel de "Administración de Políticas" y selecciona la opción "Gestionar Política de Overbooking".
+Precondiciones::
+PR-01: Deben existir tipos de habitación registrados en el sistema.
 Flujo Normal::
-. El sistema muestra la sección de "Política de Overbooking" y una lista de los tipos de habitación.
-. El Administrador ingresa un valor (ej. 10%) que representa el límite de sobreventa permitido y guarda la configuración.
-. El sistema confirma que la política ha sido actualizada.
+. El Sistema muestra los TIPOS de HABITACIÓN y el % de Overbooking actual (Default 0%).
+. El ADMINISTRADOR ingresa un valor (ej. 10%) que representa el límite de sobreventa permitido y guarda la configuración. (Ver FA 2.1)
+. El Sistema valida que el porcentaje no exceda el límite máximo de riesgo (ej. 20%) y confirma que la política ha sido actualizada. (Ver FA 3.1)
 . Termina el CU.
 Flujos Alternos::
 FA 2.1: Dato inválido
-. Si el Administrador ingresa un valor no numérico o negativo, el sistema muestra un error y no permite guardar.
-. Se regresa al paso 3 del flujo normal.
+. El ADMINISTRADOR ingresa un valor no numérico o negativo.
+. El sistema muestra un error y no permite guardar.
+. Se regresa al paso 2 del flujo normal.
++
+FA 3.1: Exceso de Riesgo
+. El ADMINISTRADOR intenta poner un overbooking que excede el límite máximo permitido.
+. El Sistema advierte: "El porcentaje excede el límite de seguridad permitido por la cadena".
+. Se regresa al paso 2 del flujo normal.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01: El motor de reservas utilizará los nuevos límites de overbooking para calcular la disponibilidad.
+. El sistema notifica al usuario que no hay conexión con la base de datos
+. Termina CU
+Postcondiciones::
+POST-01: El motor de reservas utilizará los nuevos límites de overbooking para calcular la disponibilidad.
 Reglas de negocio::
 
 [#CU-33]
@@ -1066,21 +1362,26 @@ ID:: CU-33
 Nombre:: Gestionar política de cancelación
 Autor:: José Luis Silva Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Define las reglas y penalizaciones que se aplican a las cancelaciones de reservas, basadas en la antelación con la que se realizan.
+Descripción:: Este caso de uso le permite al ADMINISTRADOR definir las reglas y penalizaciones que se aplican a las cancelaciones de reservas, basadas en la antelación con la que se realizan.
 Actor(es):: Administrador
-Disparador:: El Administrador accede al panel de "Administración de Políticas" y selecciona la opción "Gestionar Política de Cancelación".
-Precondiciones:: PR-01: El Administrador ha iniciado sesión en el sistema con permisos para modificar las políticas del hotel.
+Disparador:: El ADMINISTRADOR accede al panel de "Administración de Políticas" y selecciona la opción "Gestionar Política de Cancelación".
+Precondiciones::
+PR-01: El ADMINISTRADOR ha iniciado sesión en el sistema con permisos para modificar las políticas del hotel.
 Flujo Normal::
-. El sistema muestra una interfaz para crear o editar las reglas de cancelación existentes.
-. El Administrador define o modifica una regla, especificando las condiciones (ej. "días antes de la llegada") y la penalización correspondiente (ej. "porcentaje del total", "costo de la primera noche"). El Administrador guarda la política.
-. El sistema valida las reglas, las guarda y muestra un mensaje de confirmación de que la política está activa.
+. El Sistema muestra las políticas vigentes (ej. "Estándar", "No Reembolsable").
+. El ADMINISTRADOR define o modifica una regla, especificando las condiciones (ej. "días antes de la llegada") y la penalización correspondiente (ej. "porcentaje del total", "costo de la primera noche"). El ADMINISTRADOR guarda la política. (Ver FA 2.1)
+. El sistema valida las reglas, las guarda y muestra un mensaje de confirmación de que la política está activa. (Ver EX-01)
 . Termina el CU.
 Flujos Alternos::
+FA 2.1 Cancelación del usuario:
+. El ADMINISTRADOR decide revertir los cambios hechos y cancela la operación.
+. Termina el CU.
 Excepciones::
 EX-01 Sin conexión con la base de datos
 . El sistema notifica al usuario que no hay conexión con la base de datos.
 . Termina CU.
-Postcondiciones:: POST-01: Las nuevas reglas de cancelación se aplicarán a futuras reservas y al proceso de cancelación.
+Postcondiciones::
+POST-01: Las nuevas reglas de cancelación se aplicarán a futuras reservas y al proceso de cancelación.
 Reglas de negocio::
 
 Casos de Uso (Auditor)
@@ -1091,15 +1392,15 @@ ID:: CU-34
 Nombre:: Rastrear una transacción
 Autor:: José Luis Silva Gómez
 Fecha de actualización:: 01-oct-25
-Descripción:: Permite a un auditor seguir el rastro completo de una operación (reserva, pago, cancelación) para verificar su integridad, identificando cada cambio, la fecha y el usuario que lo realizó.
+Descripción:: Este caso de uso le permite a un AUDITOR seguir el rastro completo de una operación (reserva, pago, cancelación) para verificar su integridad, identificando cada cambio, la fecha y el usuario que lo realizó.
 Actor(es):: Auditor
-Disparador:: El Auditor accede al "Módulo de Auditoría" y selecciona la función "Rastrear una Transacción".
-Precondiciones:: PR-01: El auditor ha iniciado sesión con sus credenciales de acceso.
+Disparador:: El AUDITOR accede al "Módulo de Auditoría" y selecciona la función "Rastrear una Transacción"
+Precondiciones::
+PR-01: El AUDITOR ha iniciado sesión con sus credenciales de acceso.
 Flujo Normal::
-. El sistema muestra la interfaz de rastreo de transacciones.
-. El auditor introduce un identificador único de la transacción a rastrear (ej. número de confirmación de reserva, ID de pago).
-. El sistema busca en los registros de auditoría y muestra un historial cronológico y detallado de todos los eventos asociados a ese identificador.
-. El auditor revisa la información.
+. El sistema muestra la interfaz de rastreo de transacciones..
+. El AUDITOR introduce un identificador único de la transacción a rastrear (ej. número de confirmación de reserva, ID de pago).
+. El sistema busca en los registros de auditoría y muestra un historial cronológico y detallado de todos los eventos asociados a ese identificador. (Ver FA 3.1) (Ver EX-01)
 . Termina el CU.
 Flujos Alternos::
 FA 3.1: Transacción no encontrada
@@ -1107,8 +1408,9 @@ FA 3.1: Transacción no encontrada
 . El flujo regresa al paso 2.
 Excepciones::
 EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos.
-. Termina CU.
-Postcondiciones:: POST-01: El auditor ha obtenido la trazabilidad completa de la operación solicitada.
+. El sistema notifica al usuario que no hay conexión con la base de datos
+. Termina CU
+Postcondiciones::
+POST-01: El auditor ha obtenido la trazabilidad completa de la operación solicitada.
 Reglas de negocio::
-
+RN-01 Seguridad: Los logs de auditoría no pueden ser modificados ni borrados por ningún usuario del sistema.

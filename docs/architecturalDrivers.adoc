@@ -13,120 +13,203 @@ Este capítulo describe los atributos de calidad prioritarios que guiarán el di
 
 image::img/utilityTree/utilityTree.jpg[Utility Tree, width=800]
 
-== Escenarios de Atributos de Calidad (ASRs)
+=== 3.2 Escenarios de Atributos de Calidad (ASRs)
 
-A continuación, se detallan los escenarios prioritarios que servirán como criterio para evaluar el diseño arquitectónico. Cada escenario se describe utilizando el formato de 6 partes para asegurar que sea específico, medible y realista.
+A continuación, se detallan los escenarios prioritarios que servirán como criterio para evaluar el diseño arquitectónico. Cada escenario se describe utilizando estrictamente el formato de 6 partes definido por Bass, Clements & Kazman, alineando los estímulos y entornos a las tablas canónicas de cada atributo.
 
-=== Confiabilidad
+==== Confiabilidad (Reliability / Availability)
 
-* *Definición:* El grado en que un sistema, producto o componente puede realizar las funciones especificadas bajo condiciones determinadas durante un período de tiempo especificado.
-* *Importancia para el sistema:* Es el atributo más crítico. El objetivo principal del proyecto es eliminar por completo los incidentes de dobles reservas y dobles cobros que dañan la reputación de la marca y generan pérdidas financieras.
+* *Definición:* Capacidad del sistema para mantener la integridad y continuidad del servicio ante condiciones de fallo o uso incorrecto. Se enfoca en prevenir que las fallas latentes se conviertan en fallos observables.
+* *Importancia:* Crítica. La integridad de las transacciones (evitar dobles reservas) es el pilar de la confianza del negocio.
 
-.Escenario de Confiabilidad (CF-01): Gestión de concurrencia
+.Escenario CF-01: Gestión de Concurrencia (Integridad de Datos)
 [cols="1,3"]
 |===
 | Parte del Escenario | Descripción
 
-| Fuente del estímulo
-| Múltiples huéspedes externos.
+| **Fuente**
+| Usuarios externos (vía Web/App).
 
-| Estímulo
-| 50 usuarios intentan reservar simultáneamente la última habitación vendible (incluyendo el margen de overbooking) de tipo "Suite" para las mismas fechas.
+| **Estímulo**
+| Recepción simultánea de solicitudes de escritura conflictivas para el mismo recurso lógico (Misma habitación y fecha) en una ventana de tiempo de milisegundos (Race Condition).
 
-| Entorno
-| El sistema opera bajo una carga pico cercana a 10 TPS.
+| **Entorno**
+| Operación normal bajo carga pico (High Load), donde la probabilidad de colisión es alta.
 
-| Artefacto
-| El módulo de gestión de inventario y el procesador de transacciones de reservación.
+| **Artefacto**
+| Gestor de Base de Datos (DBMS) y Control de Transacciones del sistema.
 
-| Respuesta
-| El sistema debe asegurar que solo una de las 50 solicitudes sea exitosa, procesando su pago y confirmando la reserva. Las 49 restantes deben ser rechazadas con un mensaje claro de "no disponibilidad".
+| **Respuesta**
+| El sistema detecta el conflicto, serializa las transacciones mediante bloqueos (Locks) y permite completar solo la primera solicitud válida. Las subsecuentes son rechazadas controladamente.
 
-| Medida de Respuesta
-| La tasa de incidentes de dobles reservas debe ser del 0%. El 100% de las transacciones fallidas no deben generar ningún cargo al cliente.
+| **Medida**
+| Integridad de Inventario: **100%** (Invariante: Reservas <= Capacidad). Tasa de Dobles Reservas: **0%**.
 |===
 
-.Escenario de Confiabilidad (CF-02): Transacción idempotente
+.Escenario CF-02: Transacción Idempotente (Tolerancia a Fallos de Tiempo)
 [cols="1,3"]
 |===
 | Parte del Escenario | Descripción
 
-| Fuente del estímulo
-| Un huésped externo.
+| **Fuente**
+| Huésped externo.
 
-| Estímulo
-| Un huésped, debido a una red lenta, hace clic repetidamente en el botón "Confirmar Pago", enviando tres solicitudes idénticas para la misma reserva en 5 segundos.
+| **Estímulo**
+| Recepción de eventos duplicados (Comisión) debido a reintentos del cliente por latencia de red (ej. 3 clicks en "Pagar").
 
-| Entorno
-| El sistema está en operación normal, pero la conexión del cliente es inestable.
+| **Entorno**
+| Operación con red de cliente inestable (pérdida de paquetes o timeouts).
 
-| Artefacto
-| El módulo de procesamiento de pagos y el de confirmación de reservas.
+| **Artefacto**
+| API de Pagos y Módulo de Reservas.
 
-| Respuesta
-| El sistema debe procesar el cobro de la primera solicitud y confirmar la reserva. Las dos solicitudes siguientes deben ser identificadas como duplicados y ser rechazadas sin intentar un nuevo cobro.
+| **Respuesta**
+| El sistema identifica los eventos subsiguientes como duplicados mediante un identificador de idempotencia único. Omite el procesamiento de pago repetido y devuelve el estado de la primera transacción.
 
-| Medida de Respuesta
-| La operación de pago debe ejecutarse exactamente una vez. La tasa de dobles cobros por solicitudes duplicadas debe ser del 0%.
+| **Medida**
+| Exactitud Financiera: **0% de dobles cobros**. El sistema registra exactamente 1 cargo.
 |===
 
-=== Disponibilidad
+==== Disponibilidad (Availability)
 
-* *Definición:* El grado en que un sistema, producto o componente es operacional y accesible para su uso cuando se requiere.
-* *Importancia para el sistema:* El negocio hotelero opera 24/7, y cualquier caída del sistema se traduce directamente en pérdida de ingresos y daño a la reputación, especialmente porque se busca reemplazar soluciones locales propensas a fallos.
+* *Definición:* El grado en que un sistema es operacional y accesible cuando se requiere su uso. Se centra en la recuperación ante fallas (Faults).
+* *Importancia:* El hotel opera 24/7; el tiempo de inactividad impacta directamente ingresos y operación.
 
-.Escenario de Disponibilidad (DA-01): Falla de componente interno
+.Escenario DA-01: Recuperación de Falla Crítica (Failover)
 [cols="1,3"]
 |===
 | Parte del Escenario | Descripción
 
-| Fuente del estímulo
-| Un componente interno del sistema.
+| **Fuente**
+| Hardware del Servidor de Base de Datos (Interno).
 
-| Estímulo
-| El servidor de la base de datos principal sufre una falla imprevista y deja de responder.
+| **Estímulo**
+| El servidor sufre una caída abrupta (Crash/Omission) y deja de responder a las solicitudes.
 
-| Entorno
-| El sistema está en operación normal durante un día de alta demanda.
+| **Entorno**
+| Operación normal (Modo Producción).
 
-| Artefacto
-| El módulo de reservaciones y la base de datos.
+| **Artefacto**
+| Cluster de Base de Datos y Monitor de Salud (Health Check).
 
-| Respuesta
-| El sistema debe detectar la falla y redirigir automáticamente el tráfico a una base de datos secundaria replicada. Las transacciones en curso deben ser revertidas (rollback) para evitar inconsistencias.
+| **Respuesta**
+| El sistema monitor detecta la omisión de respuesta, aísla el nodo fallido y promueve automáticamente una réplica a nodo Maestro (Failover).
 
-| Medida de Respuesta
-| El sistema debe estar completamente operacional, usando la base de datos secundaria, en menos de 5 minutos.
+| **Medida**
+| Tiempo de Recuperación (MTTR): **< 5 minutos** hasta restablecer servicio completo.
 |===
 
-=== Rendimiento
+==== Rendimiento (Performance)
 
-* *Definición:* El rendimiento relativo a la cantidad de recursos utilizados bajo condiciones determinadas.
-* *Importancia para el sistema:* Un sistema lento afecta la experiencia del cliente (riesgo de abandono de reserva) y la eficiencia del personal de recepción (filas en el mostrador). Las métricas de latencia son un objetivo de negocio explícito.
+* *Definición:* El rendimiento relativo a la cantidad de recursos utilizados bajo condiciones determinadas (latencia y throughput).
+* *Importancia:* Directamente ligado a la conversión de ventas y satisfacción del usuario (User Experience).
 
-.Escenario de Rendimiento (RE-02): Confirmación de reserva
+.Escenario RE-01: Latencia en Confirmación (Escritura)
 [cols="1,3"]
 |===
 | Parte del Escenario | Descripción
 
-| Fuente del estímulo
-| Un alto volumen de huéspedes externos.
+| **Fuente**
+| Usuarios externos.
 
-| Estímulo
-| El sistema experimenta ráfagas de hasta 10 transacciones de confirmación por segundo (TPS) durante la hora pico.
+| **Estímulo**
+| Llegada estocástica de una ráfaga de transacciones de reserva (pico de 10 TPS).
 
-| Entorno
-| El sistema se encuentra bajo carga máxima sostenida.
+| **Entorno**
+| Operación en estado estable con carga media-alta (Steady state), recursos de CPU/RAM disponibles.
 
-| Artefacto
-| El flujo completo de reservación (retención de inventario, pago, actualización de BD).
+| **Artefacto**
+| Core de Reservas y Pasarela de Pagos.
 
-| Respuesta
-| El sistema procesa cada transacción, interactúa con la pasarela de pagos, actualiza el inventario y genera la confirmación para el huésped.
+| **Respuesta**
+| El sistema procesa la lógica de negocio, persiste los datos y confirma al usuario dentro de los márgenes de tiempo definidos.
 
-| Medida de Respuesta
-| El tiempo total de confirmación debe ser P95 <= 2.5 segundos y P99 <= 4.0 segundos.
+| **Medida**
+| Latencia: **P95 <= 2.5 segundos**. Jitter (variabilidad) bajo.
 |===
+
+.Escenario RE-02: Latencia en Búsqueda (Lectura)
+[cols="1,3"]
+|===
+| Parte del Escenario | Descripción
+
+| **Fuente**
+| Usuarios externos y Agregadores.
+
+| **Estímulo**
+| Llegada periódica de alto volumen de consultas de disponibilidad (500 QPS).
+
+| **Entorno**
+| Operación normal.
+
+| **Artefacto**
+| API Gateway y Caché de Disponibilidad.
+
+| **Respuesta**
+| El sistema sirve la información de disponibilidad calculada previamente o cacheada para minimizar cómputo.
+
+| **Medida**
+| Latencia: **P95 <= 500 milisegundos**.
+|===
+
+==== Usabilidad (Usability)
+
+* *Definición:* La capacidad del producto para ser aprendido y usado eficientemente.
+* *Importancia:* Minimizar costos de capacitación ante la alta rotación de personal hotelero.
+
+.Escenario US-01: Facilidad de Aprendizaje (Learnability)
+[cols="1,3"]
+|===
+| Parte del Escenario | Descripción
+
+| **Fuente**
+| Recepcionista Novato (Usuario final).
+
+| **Estímulo**
+| El usuario intenta completar una tarea crítica y desconocida (Check-in) por primera vez para "aprender haciendo".
+
+| **Entorno**
+| Tiempo de ejecución (Runtime), tras haber recibido una instrucción teórica mínima (10 min).
+
+| **Artefacto**
+| Interfaz de Usuario (UI) del Módulo de Operaciones.
+
+| **Respuesta**
+| El sistema provee affordances claros, validación inmediata y previene errores críticos mediante confirmaciones.
+
+| **Medida**
+| Eficacia: Tarea completada exitosamente en el **primer intento**. Eficiencia: Tiempo total **< 2 minutos**.
+|===
+
+==== Seguridad (Security)
+
+* *Definición:* Protección de la información contra acceso no autorizado, manteniendo confidencialidad, integridad y disponibilidad.
+* *Importancia:* Protección legal de datos personales (PII) y financieros.
+
+.Escenario SE-01: Control de Acceso (Autorización)
+[cols="1,3"]
+|===
+| Parte del Escenario | Descripción
+
+| **Fuente**
+| Usuario legítimo identificado (Huésped A).
+
+| **Estímulo**
+| Intento de acceso no autorizado a un recurso de datos (Reserva de Huésped B) manipulando identificadores en la petición (IDOR).
+
+| **Entorno**
+| Operación Online, sistema accesible desde internet pública.
+
+| **Artefacto**
+| Middleware de Autorización y Datos de Reserva.
+
+| **Respuesta**
+| El sistema valida que el ID del recurso pertenezca al usuario autenticado. Al fallar la validación, bloquea la solicitud y audita el evento.
+
+| **Medida**
+| Resistencia al ataque: **100% bloqueado**. Detectabilidad: Evento registrado en log de seguridad.
+|===
+
 
 == Restricciones y preocupaciones
 
@@ -134,62 +217,62 @@ A continuación se documentan dos tipos de influencias en el diseño que limitan
 
 === Lista de Restricciones
 
-[options="header"]
+[options="header", cols="1,3,1"]
 |===
 | ID | Restricción | Origen
 
 | CON-1
-| Se debe utilizar un RDBMS para las transacciones de reserva y pago para asegurar la consistencia.
+| **Persistencia Relacional (RDBMS):** Se debe utilizar una base de datos relacional para el núcleo transaccional (Reservas/Pagos) para garantizar propiedades ACID (Atomicidad, Consistencia, Aislamiento, Durabilidad).
 | Técnico
 
 | CON-2
-| La solución solo se implementará para la web y la aplicación móvil oficial de la cadena.
+| **Canales Digitales:** La solución se implementará exclusivamente para entorno Web y Aplicación Móvil oficial. No se contemplan clientes de escritorio instalables (Rich Clients).
 | Negocio
 
 | CON-3
-| El modelo de negocio exige el pago completo de la estancia al momento de reservar.
+| **Modelo de Prepago:** El modelo de negocio exige el pago del 100% del costo de la estancia al momento de confirmar la reserva (Transacción Atómica).
 | Negocio
 
 | CON-4
-| Se debe implementar una política de overbooking del 10% por tipo de habitación y fecha.
+| **Política de Overbooking:** El sistema debe permitir vender sistemáticamente un 10% por encima de la capacidad física real por tipo de habitación para mitigar *No-Shows*.
 | Negocio
 
 | CON-5
-| El sistema se integrará con una pasarela de pago externa y no construirá su propia lógica de procesamiento de pagos.
-| Técnico/Negocio
+| **Delegación de Pagos (PCI-DSS):** El sistema **NO** procesará ni almacenará datos de tarjetas de crédito. Se integrará obligatoriamente con una Pasarela de Pagos Externa certificada para reducir el alcance de cumplimiento PCI.
+| Técnico/Legal
 |===
 
 === Lista de Preocupaciones (Concerns)
 
-[options="header"]
+[options="header", cols="1,1,3"]
 |===
 | ID | Preocupación | Descripción del Objetivo
 
 | CRN-1
-| Gestión de inventario bajo concurrencia
-| Garantizar que el sistema evite dobles reservas cuando múltiples clientes intentan reservar la misma habitación simultáneamente.
+| **Gestión de Concurrencia**
+| (Race Conditions) Garantizar que el inventario se bloquee correctamente cuando múltiples clientes intentan reservar la misma habitación en el mismo milisegundo, evitando la sobreventa no planificada.
 
 | CRN-2
-| Idempotencia en transacciones
-| Asegurar que un pago o confirmación se procese una sola vez, sin importar si la solicitud se repite por error, para evitar dobles cobros.
+| **Idempotencia Financiera**
+| Asegurar que cada operación de cobro sea única. Si una solicitud de pago se recibe múltiples veces (ej. por error de red o reintento del usuario), el sistema debe procesar el cargo una sola vez.
 
 | CRN-3
-| Manejo de picos de demanda
-| Diseñar el sistema para manejar aumentos inesperados de tráfico de manera controlada, evitando caídas y degradando el servicio de forma predecible.
+| **Resiliencia ante Picos**
+| El sistema debe manejar aumentos súbitos de tráfico (Flash Crowds) degradando el servicio de forma grácil en lugar de sufrir una caída total (Crash).
 
 | CRN-4
-| Coherencia de precios
-| Asegurar que el precio mostrado al cliente al iniciar la reserva sea exactamente el mismo que se le cobra al finalizar la transacción.
+| **Coherencia de Precios**
+| Garantía de integridad entre la búsqueda y el pago: el precio mostrado al cliente al seleccionar la habitación debe ser respetado al momento del cobro, incluso si las tarifas cambiaron en ese intervalo.
 
 | CRN-5
-| Trazabilidad y Observabilidad
-| El sistema debe generar registros detallados y métricas para rastrear cada transacción, permitiendo la auditoría y el monitoreo del rendimiento.
+| **Observabilidad**
+| El sistema no puede ser una "caja negra". Debe generar logs estructurados y métricas en tiempo real para rastrear el ciclo de vida de cada transacción (Auditoría Técnica).
 
 | CRN-6
-| Facilidad de operación
-| La solución debe ser intuitiva y fácil de usar para minimizar la curva de aprendizaje del personal de recepción.
+| **Eficiencia de UI/UX**
+| La interfaz de recepción debe ser operada eficientemente por personal novato y ejecutarse fluidamente en equipos de cómputo con recursos de hardware modestos (Slide 14).
 
 | CRN-7
-| Privacidad de la información
-| El sistema debe cumplir con las regulaciones locales, protegiendo los datos personales y de pago del cliente en todo momento.
+| **Privacidad (PII)**
+| Protección estricta de la Información de Identificación Personal (PII) del huésped según regulaciones locales, separando datos sensibles de la lógica operativa general.
 |===

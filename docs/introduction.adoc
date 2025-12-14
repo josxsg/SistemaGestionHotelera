@@ -10,6 +10,7 @@
 :toclevels: 3
 :sectnums:
 :source-highlighter: rouge
+:imagesdir: ./img
 
 :course: Diseño de Software
 :period: Agosto 2025 - Enero 2026
@@ -28,9 +29,9 @@
 [options="header"]
 |===
 | Versión | Fecha | Autor(es) | Resumen de Cambios Significativos
-| 1 | 29/09/25 | Aldo Antonio, José Luis, Ángel Jonathan | [cite_start]Creación inicial del documento, contiene los apartados para: Requisitos de Negocio, Declaración de Visión, Alcance, Restricciones y Actores Principales. [cite: 5714]
-| 2 | 05/10/25 | Aldo Antonio, José Luis, Ángel Jonathan | [cite_start]Actualización de diagramas de casos de uso, descripciones de casos de uso, utility tree y los escenarios de atributos de calidad. [cite: 5714]
-| 3 | 18/10/25 | Aldo Antonio, José Luis, Ángel Jonathan | Se añadieron las secciones de *Restricciones y Preocupaciones*, *Método de Diseño* (ADD/CBSE), y las vistas de *Modelo de Conceptos* y *Lógica*.
+| 1.0 | 29/09/25 | Aldo Antonio, José Luis, Ángel Jonathan | Creación inicial: Visión, Alcance, Restricciones y Actores.
+| 1.1 | 05/10/25 | Aldo Antonio, José Luis, Ángel Jonathan | Refinamiento de Casos de Uso y Escenarios de Calidad (Utility Tree).
+| 1.2 | 18/10/25 | Aldo Antonio, José Luis, Ángel Jonathan | Inclusión de Glosario Técnico, Restricciones y Modelo Conceptual.
 |===
 
 == 1. Contexto y Alcance del Sistema
@@ -125,3 +126,45 @@ Los principales actores que interactúan directamente con el sistema son:
 * **Auditoría (Sistema):** Actor que consume los registros del sistema para asegurar la trazabilidad de todas las operaciones.
 
 === 1.4 Glosario
+Definiciones precisas de términos utilizados en este documento para evitar ambigüedades.
+
+[options="header", cols="1,4"]
+|===
+| Término | Definición
+
+| **Check-in**
+| Proceso formal de registro de llegada del huésped. Convierte una *Reserva* en una *Estancia* activa y asigna una habitación física específica.
+
+| **Check-out**
+| Proceso de cierre de la *Estancia*. Incluye la liquidación de consumos, liberación de la habitación física y actualización del inventario disponible.
+
+| **Disponibilidad**
+| Cantidad de habitaciones de un *Tipo* específico que pueden venderse para una fecha determinada. Calculada como: `(Total Inventario - Habitaciones Ocupadas - Habitaciones Bloqueadas) + Margen Overbooking`.
+
+| **Doble Reserva**
+| **Fallo crítico** del sistema donde se venden dos reservas distintas para el mismo inventario físico agotado, excediendo incluso el margen de overbooking. Debe ser cero.
+
+| **Estancia**
+| El periodo de tiempo en el que el huésped ocupa físicamente una habitación. Posee estado (Activa, Finalizada) y una cuenta de cargos asociada.
+
+| **Habitación Física**
+| La unidad indivisible del hotel (ej. Habitación 101). A diferencia del *Tipo de Habitación*, esta es única y tangible.
+
+| **Inventario**
+| Conjunto de habitaciones administradas por el sistema. Puede referirse al inventario lógico (cupos disponibles para venta) o físico (habitaciones reales).
+
+| **Overbooking**
+| **Política de Negocio** que permite vender un porcentaje controlado (10%) por encima de la capacidad física real para compensar cancelaciones o *no-shows*.
+
+| **No-Show**
+| Situación donde un huésped con reserva confirmada no se presenta para el Check-in.
+
+| **Precio Dinámico**
+| Tarifa que varía para un mismo *Tipo de Habitación* dependiendo de la fecha específica de la estancia, configurada centralmente.
+
+| **Reserva**
+| Contrato digital que garantiza una habitación de un cierto *Tipo* para unas fechas específicas. No implica la asignación de una habitación física específica hasta el Check-in.
+
+| **Transacción Atómica**
+| Operación que se completa totalmente o no se realiza en absoluto. Vital para el proceso de Pago-Reserva-Confirmación.
+|===
