@@ -1,0 +1,63 @@
+[[deployment-view]]
+= Vista de Despliegue
+
+== Topología de Infraestructura
+
+La Vista de Despliegue describe el mapeo de los componentes de software sobre la infraestructura de hardware y entornos de ejecución virtualizados. Se ha seleccionado una topología de **N-Capas distribuida**, diseñada para soportar los requisitos de Alta Disponibilidad (**ASR-DA-01**) y Escalabilidad Elástica.
+
+El diagrama de despliegue ilustra la siguiente distribución de nodos:
+
+1.  **Nivel de Cliente (Front-end):**
+    * Ejecución en el navegador del usuario (SPA - Single Page Application) o dispositivo móvil.
+    * Se comunica exclusivamente vía HTTPS (TLS 1.3) con el Balanceador de Carga, garantizando la seguridad en tránsito.
+
+2.  **Nivel de Entrega de Aplicaciones (DMZ):**
+    * **Load Balancer (Nginx/AWS ALB):** Punto de entrada único. Distribuye el tráfico entrante entre los nodos de aplicación utilizando un algoritmo *Round-Robin* o *Least Connections*. Este componente es crítico para la táctica de **Escalamiento Horizontal**, permitiendo añadir o quitar servidores de aplicación transparentemente.
+    * Terminación SSL: El descifrado de tráfico ocurre aquí para aliviar la carga de CPU de los servidores de aplicación.
+
+3.  **Nivel de Aplicación (Cluster de Servicios):**
+    * **Nodos de Aplicación (App Server Cluster):** Contenedores (Docker) orquestados (ej. Kubernetes o ECS) que alojan los componentes lógicos del sistema (`GestionReservas`, `Pagos`, etc.).
+    * **Estrategia Stateless:** Estos nodos no almacenan estado de sesión. Esto permite que cualquier nodo atienda cualquier petición, facilitando la recuperación inmediata ante fallos (Failover) y el auto-escalado basado en métricas de CPU/Memoria (**ASR-RE-01**).
+
+4.  **Nivel de Datos (Persistencia):**
+    * **Cluster de Base de Datos (RDBMS):** Configuración Maestro-Esclavo (Primary-Replica).
+        * *Nodo Maestro:* Recibe todas las escrituras (INSERT, UPDATE) para garantizar consistencia ACID.
+        * *Réplicas de Lectura:* Sirven las consultas masivas de disponibilidad (CQRS), liberando al maestro de carga de lectura.
+    * **Caché Distribuida (Redis):** Almacena sesiones de usuario y datos de acceso frecuente (catálogos) para reducir latencia.
+
+== Justificación de Decisiones de Infraestructura
+
+=== Escalabilidad y Rendimiento
+La separación física entre los servidores de aplicación y la base de datos permite escalar cada capa de forma independiente. Ante un evento de *Flash Crowd* (pico de tráfico), el orquestador puede instanciar dinámicamente más réplicas de los contenedores de aplicación (Escalamiento Horizontal) sin detener el servicio. El uso de réplicas de lectura en la base de datos aborda directamente el driver de rendimiento de búsquedas < 500ms.
+
+=== Disponibilidad y Resiliencia
+Para cumplir con el **ASR-DA-01** (Disponibilidad), se aplica la táctica de **Redundancia Activa**:
+* Todos los componentes críticos (Web Servers, DB) están duplicados.
+* Si un nodo de aplicación falla, el Load Balancer detecta la falta de respuesta (*Health Check*) y redirige el tráfico a los nodos sanos restantes.
+* Si el nodo maestro de base de datos falla, se activa un proceso de *Failover* automático promoviendo una réplica a maestro.
+
+=== Seguridad y PCI-DSS
+Para satisfacer la restricción **CON-05**, la infraestructura segrega las redes:
+* La base de datos reside en una subred privada, inaccesible desde internet. Solo los servidores de aplicación pueden comunicarse con ella.
+* No se almacenan datos de tarjetas. La comunicación con la Pasarela de Pagos Externa se realiza directamente desde el cliente o mediante un túnel seguro desde el backend, sin persistir datos sensibles (PAN/CVV) en discos locales.
+
+== Mapeo de Componentes a Nodos
+|===
+| Nodo / Contenedor | Componentes Desplegados | Requisitos de Hardware (Estimado)
+
+| Web Browser / Mobile App
+| SPA (React/Angular), Assets estáticos
+| N/A (Dispositivo Cliente)
+
+| Application Server (Cluster)
+| `GestionReservas`, `Pagos`, `Administracion`, `Auditoria`
+| vCPU: 2, RAM: 4GB (Auto-scaling: 2-10 nodos)
+
+| Database Primary
+| Esquema `Core`, Tablas Transaccionales
+| vCPU: 8, RAM: 32GB, SSD NVMe
+
+| Database Replica
+| Esquema `Lectura`, Vistas Materializadas
+| vCPU: 4, RAM: 16GB
+|===
