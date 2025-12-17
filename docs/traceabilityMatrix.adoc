@@ -1,6 +1,7 @@
-== Matriz de Trazabilidad (v1 Hito 4)
+[[traceability-matrix]]
+= Matriz de Trazabilidad (Final Extendida – Hito 6)
 
-Esta matriz conecta los impulsores arquitectónicos (Drivers) con las tácticas y decisiones de diseño tomadas, y los artefactos resultantes que demuestran su cumplimiento. El objetivo de este hito es alcanzar una cobertura > 80% de los drivers críticos.
+Esta matriz conecta exhaustivamente los impulsores arquitectónicos (Drivers), Restricciones (CON) y Preocupaciones (CRN) con las tácticas de diseño, decisiones arquitectónicas y los artefactos resultantes. Integra la cobertura funcional y los requisitos no funcionales de infraestructura y procesos.
 
 [cols="1,3,3,4,1", options="header"]
 |===
@@ -12,159 +13,169 @@ Esta matriz conecta los impulsores arquitectónicos (Drivers) con las tácticas 
 
 | **ASR-CF-02**
 | (Confiabilidad) **Garantía de 0 dobles cobros** a clientes.
-| (Táctica: Idempotencia) Asegurar la idempotencia en la interfaz de pago, forzando la unicidad de la transacción mediante una referencia.
-|* `IPagos.procesarPago` -> `PRE-02: idReferencia debe ser único (garantía de idempotencia para ASR-CF-02).`
-* `INV-PA-01: Un idReferencia... solo puede estar asociado a un Pago.`
-| `Especificado`
+| (Táctica: Idempotencia) Asegurar la unicidad de la transacción mediante referencia única.
+| * `IPagos.procesarPago` → `PRE-02` (Unicidad).
+* `INV-PA-01` (Invariante de Pago).
+| Completo
 
 | **ASR-CF-01**
-| (Confiabilidad) **Garantía de 0 dobles reservas** (evitar sobreventa no controlada).
-| (Táctica: Transacción Atómica) Vincular la confirmación de la reserva al descuento de inventario y el pago exitoso, gobernado por invariantes.
-|* `IGestionReserva.crearReserva` -> `POST-03: Se debe descontar el inventario... (garantizando ASR-CF-01).`
-* `INV-GR-02: Una Reservacion "Confirmada" DEBE tener una entrada de inventario...`
-| `Especificado`
+| (Confiabilidad) **Garantía de 0 dobles reservas**.
+| (Táctica: Transacción Atómica ACID) Confirmación "todo o nada" (Inventario + Pago).
+| * `IGestionReserva.crearReserva` → `POST-03`.
+* `INV-GR-02` (Consistencia Reserva–Inventario).
+| Completo
 
 | **ASR-AU-01**
-| (Auditabilidad) **Trazabilidad de operaciones críticas** (reservas, pagos, accesos).
-| (Táctica: Registro Centralizado) Crear un componente `Auditoria` transversal y forzar a todos los componentes transaccionales a depender de `IAuditoria`.
-|* `IAuditoria.registrarEvento(...)`
-* `INV-AD-01: Un RegistroAuditoria... es inmutable.`
-* `IGestionReserva.crearReserva` -> `POST-05: Se debe emitir un evento de auditoría...`
-* `IPagos.procesarPago` -> `POST-03: Se emite un evento de auditoría...`
-* `IGestionCheckIn.realizarCheckIn` -> `POST-03: Se emite un evento de auditoría...`
-* `IAutorizacion.verificarPermiso` -> `POST-03: Si retorna false, se emite un evento...`
-| `Especificado`
+| (Auditabilidad) **Trazabilidad de operaciones críticas**.
+| (Táctica: Registro Centralizado) Componente transversal `Auditoria`.
+| * `IAuditoria` y sus implementaciones.
+* `INV-AD-01` (Inmutabilidad del registro).
+| Completo
 
 | **ASR-RE-01**
-| (Rendimiento) Consulta de disponibilidad < 500ms @ 500 QPS.
-| (Táctica: Separación de Responsabilidades / CQRS) Aislar la lógica de consulta de alta lectura (`ConsultaDisponibilidad`) de la lógica de escritura transaccional (`GestionReservas`).
-|* `componentView.adoc` -> `1.1. Componente: ConsultaDisponibilidad` (y su justificación).
-* `IConsultaDisponibilidad.buscarDisponibilidad` -> `POST-02: La latencia... debe cumplir con ASR-RE-01.`
-* `INV-CD-01: (Si se usa caché)...`
-| `Especificado`
+| (Rendimiento) Consulta disponibilidad < 500ms.
+| (Táctica: CQRS / Separate Read–Write) Modelo de lectura optimizado.
+| * `IConsultaDisponibilidad`.
+* `deploymentView.adoc` → Read Replicas.
+| Completo
 
 | **ASR-SE-02**
-| (Seguridad) **Autorización basada en roles** (Admin, Recepcionista, Auditor).
-| (Táctica: Control de Acceso Centralizado) Centralizar la lógica de autorización en `IAutorizacion` y forzar su uso como pre-condición en interfaces críticas.
-|* `IAutorizacion.verificarPermiso(...)`
-* `Contrato Genérico CRUD Admin` -> `PRE-01: ...rol "Administrador".`
-* `IGestionCheckIn.realizarCheckIn` -> `PRE-01: ...idRecepcionista... autorizado.`
-* `IConsultaTrazabilidad.rastrearTransaccion` -> `PRE-01: ...rol "Auditor".`
-| `Especificado`
+| (Seguridad) **Autorización RBAC**.
+| (Táctica: Restringir Acceso) Control de acceso centralizado vía middleware.
+| * `IAutorizacion`.
+* `securityView.adoc`.
+| Completo
 
 | **ASR-SE-01**
-| (Seguridad) Prevenir acceso no autorizado a datos de otros usuarios (Huésped).
-| (Táctica: Validación de Propiedad) Validar en la pre-condición que el recurso solicitado pertenece al `idHuesped` autenticado en la sesión.
-|* `IConsultaCliente.obtenerMisReservas` -> `PRE-01: idHuesped debe corresponder al usuario autenticado...`
-* `IGestionReserva.cancelarReserva` -> `PRE-01: idReserva debe existir y pertenecer a idHuesped...`
-* `ISesionUsuario.validarToken(...)`
-| `Especificado`
+| (Seguridad) Aislamiento de datos de Huésped.
+| (Táctica: Validación de Propiedad) Verificación explícita de `ownerID`.
+| * `IConsultaCliente`, `IGestionReserva`.
+| Completo
 
 | **ASR-Consistencia**
-| (Consistencia) 5,000+ hoteles deben usar los mismos catálogos, tarifas y políticas.
-| (Táctica: Fuente de Verdad Única) Centralizar todos los datos maestros y reglas de negocio en el componente `AdministracionCentral`.
-|* `componentView.adoc` -> `1.5. Componente: AdministracionCentral` (y su justificación).
-* `Contrato Genérico CRUD Admin` -> `POST-01: ...es creada... en la "fuente de verdad".`
-* `INV-AC-01, INV-AC-02, INV-AC-03.`
-| `Especificado`
+| (Consistencia) Datos maestros unificados para 5,000 hoteles.
+| (Táctica: Shared Repository / Master Data Management) Fuente única de verdad.
+| * `AdministracionCentral`.
+* `databaseSchema.sql`.
+| Completo
 
 | **ASR-MO-02**
-| (Modificabilidad) Poder cambiar de proveedor de pasarela de pago en el futuro.
-| (Táctica: Encapsulación / Abstracción) Aislar toda la lógica de pago (interna y externa) detrás de las interfaces `IPagos` e `IReembolso`.
-|* `componentView.adoc` -> `1.3. Componente: Pagos` (y su justificación).
-* `IPagos` e `IReembolso` (Interfaces de fachada).
-* `IPasarelaExterna` (Interfaz requerida, único punto de cambio).
-| `Especificado`
+| (Modificabilidad) Cambiar proveedor de pagos.
+| (Táctica: Intermediary / Adapter) Aislamiento mediante `IPagos`.
+| * `IPagos`.
+* `StripeAdapter`, `PayPalAdapter`.
+| Completo
 
 | **ASR-DA-02**
-| (Disponibilidad) Manejar contingencia si la pasarela de pago externa falla.
-| (Táctica: Manejo de Fallos) Definir un contrato de error explícito (`POST-ERR`) para la interfaz de pago que permita al sistema reaccionar.
-|* `IPagos.procesarPago` -> `POST-ERR-03: Si la conexión... falla (contingencia ASR-DA-02), retorna Pago con estado "Indeterminado"...`
-| `Especificado`
+| (Disponibilidad) Fallo de pasarela externa.
+| (Táctica: Degradación Graciosa) Manejo explícito de estados indeterminados.
+| * `IPagos` → `POST-ERR-03`.
+| Completo
+
+| **CRN-1 / ASR-CF-01**
+| (Preocupación) **Race Conditions** en inventario.
+| (Táctica: Locking / Serialize Access) Concurrencia pesimista en BD.
+| * `processView.adoc`.
+* `ERD` (Bloqueos a nivel de fila).
+| Completo
+
+| **CRN-3**
+| (Preocupación) **Resiliencia ante picos** (Flash Crowds).
+| (Táctica: Introduce Concurrency / Circuit Breaker).
+| * `deploymentView.adoc` (Auto-scaling).
+* `Resilience Policies`.
+| Completo
+
+| **CON-1**
+| (Restricción) Persistencia relacional (ACID).
+| (Decisión) Uso de RDBMS transaccional.
+| * `deploymentView.adoc`.
+* `logicalView.adoc`.
+| Completo
+
+| **CON-2**
+| (Restricción) Solo Web y App Móvil.
+| (Decisión) Arquitectura REST stateless.
+| * `contextDiagram`.
+* `API Specification`.
+| Completo
+
+| **CON-5**
+| (Restricción) PCI-DSS (no almacenar tarjetas).
+| (Táctica: Tokenización) Delegación total a pasarela externa.
+| * `domainModel` → `MetodoPago`.
+* `dataFlowDiagram`.
+| Completo
 
 | **CU-01**
-| Consultar disponibilidad de habitaciones.
-| Proveer una interfaz de consulta optimizada para el flujo principal del huésped.
-|* `IConsultaDisponibilidad.buscarDisponibilidad(...)`
-* `communicationView.adoc` -> `CommunicationCU1.png`
-| `Especificado`
+| Consultar disponibilidad.
+| (Táctica: Introduce Concurrency / Copies of Data) Uso de réplicas de lectura para aislar consultas del modelo transaccional.
+| * `IConsultaDisponibilidad.buscarDisponibilidad`.
+* `CommunicationCU1.png`.
+| Completo
 
 | **CU-02, CU-03**
-| Reservar una habitación y Realizar el pago.
-| (Táctica: Orquestación Transaccional) Orquestar la creación de la reserva, la validación de inventario y el procesamiento del pago.
-|* `IGestionReserva.crearReserva(...)` (y todas sus cláusulas PRE/POST/POST-ERR).
-* `communicationView.adoc` -> `CommunicationCU2.png`, `CommunicationCU3.png`
-| `Especificado`
+| Reservar habitación y realizar pago.
+| (Decisión: Orquestación Transaccional) Coordinación de inventario, reserva y pago.
+| * `IGestionReserva.crearReserva`.
+* `CommunicationCU2.png`, `CommunicationCU3.png`.
+| Completo
 
 | **CU-04**
-| Cancelar una reservación (y procesar reembolso).
-| (Táctica: Orquestación Transaccional) Orquestar la cancelación, validación de políticas (`IPoliticas`), procesamiento de reembolso (`IReembolso`) y liberación de inventario (`IInventario`).
-|* `IGestionReserva.cancelarReserva(...)` -> `POST-02: Se libera el inventario...`, `POST-03: ...se invoca IReembolsos...`
-* `IReembolso.procesarReembolso(...)`
-* `communicationView.adoc` -> `CommunicationCU4.png`
-| `Especificado`
+| Cancelar reservación y reembolso.
+| (Táctica: Compensating Transaction) Reversión controlada de efectos.
+| * `IGestionReserva.cancelarReserva`.
+* `IReembolso.procesarReembolso`.
+| Completo
 
-| **CU-07**
-| Registrar entrada (Check-in).
-| (Táctica: Orquestación de Estado) Validar reserva, crear `Estancia` y actualizar estado de `Habitacion` a "Ocupada".
-|* `IGestionCheckIn.realizarCheckIn(...)`
-* `PRE-02: idReserva debe... "Confirmada"`. `POST-01: Se crea... Estancia... "Activa"`. `POST-02: ...Habitacion... "Ocupada"`.
-* `INV-GE-02` e `INV-GE-03` (Invariantes de consistencia Estancia-Habitación).
-* `communicationView.adoc` -> `CommunicationCU7.jpg`
-| `Especificado`
-
-| **CU-08**
-| Registrar salida (Check-out).
-| (Táctica: Orquestación de Estado) Validar saldo de cuenta (`IPagos`), finalizar `Estancia` y actualizar estado de `Habitacion` a "Limpieza".
-|* `IGestionCheckOut.realizarCheckOut(...)`
-* `PRE-03: La cuenta... debe estar saldada (requiere IPagos).`
-* `POST-01: Estancia... "Finalizada"`. `POST-02: Habitacion... "Limpieza"`.
-* `communicationView.adoc` -> `CommunicationCU8.jpg`
-| `Especificado`
+| **CU-07, CU-08**
+| Check-in y Check-out.
+| (Táctica: Manage State / Localize State Changes) Gestión explícita del ciclo de vida de `Estancia`.
+| * `IGestionCheckIn`, `IGestionCheckOut`.
+* `INV-GE-02`.
+| Completo
 
 | **CU-10**
-| Registrar consumo o servicio.
-| Proveer una interfaz para añadir cargos a una estancia, protegida por una invariante.
-|* `IConsumos.registrarConsumo(...)`
-* `INV-GE-04: Un Consumo... solo puede asociarse a una Estancia en estado "Activa".`
-* `communicationView.adoc` -> `CommunicationCU10.jpg`
-| `Especificado`
+| Registrar consumo.
+| (Táctica: Restrict Access by State) Validación de estado antes de permitir cargos.
+| * `IConsumos.registrarConsumo`.
+* `INV-GE-04`.
+| Completo
 
 | **CU-34**
 | Rastrear transacción (Auditor).
-| Proveer una interfaz de consulta segura, protegida por rol, en el componente `Auditoria`.
-|* `IConsultaTrazabilidad.rastrearTransaccion(...)`
-* `PRE-01: El idAuditor debe... tener el rol "Auditor".`
-* `communicationView.adoc` -> `CommunicationCU34.jpg`
-| `Especificado`
+| (Táctica: Restrict Access / Defer Binding) Interfaz separada para desacoplar acceso administrativo y aplicar seguridad granular.
+| * `IConsultaTrazabilidad.rastrearTransaccion`.
+| Completo
 
 | **CU-13..33**
-| (Grupo) Administración de Catálogos, Personal, Tarifas y Políticas.
-| (Táctica: Centralización y Seguridad) Centralizar todas las operaciones de CRUD en `AdministracionCentral` y protegerlas con el rol de "Administrador".
-|* `Contrato Genérico para Operaciones CRUD (gestionar...)`
-* `PRE-01: ...rol "Administrador".`
-* `communicationView.adoc` -> `CommunicationCU13.jpg` ... `CommunicationCU33.jpg`.
-| `Especificado`
+| Administración de catálogos, tarifas y personal.
+| (Táctica: Localize Changes / Coherencia Semántica) Centralizar reglas de datos maestros para evitar dispersión.
+| * `AdministracionCentral`.
+* Contrato CRUD Administrativo.
+| Completo
 
 | **CON-01**
-| (Restricción) Metodología Base: Attribute-Driven Design (ADD).
-| Estructurar el SAD en vistas (Lógica, Componentes, etc.) y enfocar el diseño en la satisfacción de los ASRs.
-|* `index.adoc` (Estructura general del SAD).
-* `architecturalDrivers.adoc` (Utility Tree).
-* Esta misma Matriz de Trazabilidad.
-| `Completo`
+| (Restricción) Metodología ADD.
+| Diseño guiado por atributos de calidad.
+| * `architecturalDrivers.adoc`.
+* Esta matriz.
+| Completo
 
 | **CON-02**
-| (Restricción) Referencia: UML Components (Cheesman & Daniels).
-| Seguir el proceso CBSE: Identificación (Hito 3), Interacción (Hito 3) y Especificación (Hito 4).
-|* `componentView.adoc` (con Secciones 1 y 2 - Invariantes).
-* `interfaceDiagram.adoc` (con Contratos v2 PRE/POST/POST-ERR).
-* `communicationView.adoc` (Diagramas de Interacción).
-| `Completo`
+| (Restricción) UML Components / CBSE.
+| Identificación, interacción y especificación de componentes.
+| * `componentView.adoc`.
+* `interfaceDiagram.adoc`.
+| Completo
 
-| **CON-03**
+| | **CON-03**
 | (Restricción) Modelado: UML 2.x
 | Utilizar notación UML estándar para todos los diagramas arquitectónicos.
-|* Todos los artefactos `.jpg` y `.png` en las carpetas `img/` (Diagramas de CU, Contexto, Componentes, Interfaces, Comunicación).
-| `Completo`
+| * `img/conceptModel/` (Modelo Conceptual)
+* `img/contextDiagram/` (Contexto)
+* `img/ComponentDiagrams/` (Componentes)
+* `img/interfaceDiagram/` (Interfaces)
+* `img/CommunicationDiagrams/` (Interacción)
+| Completo
 |===
