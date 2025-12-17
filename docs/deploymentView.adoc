@@ -4,6 +4,7 @@
 == Topología de Infraestructura
 
 La Vista de Despliegue describe el mapeo de los componentes de software sobre la infraestructura de hardware y entornos de ejecución virtualizados. Se ha seleccionado una topología de **N-Capas distribuida**, diseñada para soportar los requisitos de Alta Disponibilidad (**ASR-DA-01**) y Escalabilidad Elástica.
+image::img/deploymentDiagram.png[align="center", title="DiagramaDespliegue: Infraestructura N-Capas en AWS/Cloud"]
 
 El diagrama de despliegue ilustra la siguiente distribución de nodos:
 
