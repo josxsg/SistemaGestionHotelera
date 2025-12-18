@@ -4,6 +4,7 @@
 :encoding: utf-8
 :toclevels: 3
 :sectnums:
+:imagesdir: img
 
 == Arquitectura
 
@@ -40,7 +41,9 @@ Se ha seleccionado una Arquitectura en Capas con un núcleo modelado mediante Do
 
 El siguiente diagrama muestra la descomposición en las cuatro capas principales y los módulos de dominio refinados, que reflejan mejor la funcionalidad descrita en los casos de uso.
 
-image::img/logicalView/logical_view.jpg[Vista Lógica, width=800]
+
+image::logicalView/logical_view.jpg[Vista Lógica, width=800, align=center]
+
 
 
 ==== Descripción de los Paquetes Lógicos (Capas)
@@ -82,7 +85,9 @@ El Modelo de Conceptos de Negocio define el vocabulario común y las reglas est�
 
 El siguiente diagrama UML ilustra las entidades del dominio.
 
-image::img/conceptModel/conceptModel.jpg[Diagrama de clases conceptual, width=900]
+
+image::conceptModel/conceptModel.jpg[Diagrama de clases conceptual, width=900, align=center]
+
 
 ==== Descripción de Conceptos Clave
 

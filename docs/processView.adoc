@@ -1,3 +1,5 @@
+:imagesdir: img
+
 === Vista de Procesos
 
 ==== Introducción al Modelo de Concurrencia
@@ -11,7 +13,10 @@ El sistema *ArchiHotel* adopta un modelo de concurrencia basado en hilos por sol
 A continuación, se describen los procesos de ejecución para los escenarios más exigentes del sistema, detallando las estrategias de sincronización y consistencia.
 
 ===== Proceso de Creación de Reserva (Transaccionalidad Estricta)
-image::img/sequenceDiagrams/RealizarReservacion.png[align="center", title="Diagrama de Secuencia: Creación de Reserva Transaccional"]
+
+
+image::sequenceDiagrams/RealizarReservacion.png[align=center, title="Diagrama de Secuencia: Creación de Reserva Transaccional"]
+
 
 Este es el flujo más crítico del sistema, gobernado por la regla de negocio de "Cero Dobles Reservas".
 
@@ -35,7 +40,7 @@ A diferencia de la reserva, este proceso prioriza la velocidad y el rendimiento 
 
 Este flujo representa un cambio crítico de estado en el ciclo de vida del servicio, donde la reserva lógica se convierte en una ocupación física.
 
-image::img/sequenceDiagrams/RegistrarCheckIn.png[align="center", title="Diagrama de Secuencia: Registrar Check-In"]
+image::sequenceDiagrams/RegistrarCheckIn.png[align=center, title="Diagrama de Secuencia: Registrar Check-In"]
 
 * **Validación de Pre-condiciones:** El proceso inicia validando que la reserva exista, esté en estado `CONFIRMADA` y que la fecha actual coincida con la fecha de entrada (`CheckInDate`).
 * **Atomicidad Multi-Entidad:** A diferencia de una reserva simple, el Check-In requiere coordinar actualizaciones en tres entidades distintas dentro de una sola transacción ACID:

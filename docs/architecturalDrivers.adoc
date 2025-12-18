@@ -4,6 +4,7 @@
 :encoding: utf-8
 :toclevels: 3
 :sectnums:
+:imagesdir: img
 
 == Impulsores Arquitectónicos (ASRs) y Priorización
 
@@ -11,7 +12,9 @@ Este capítulo describe los atributos de calidad prioritarios que guiarán el di
 
 === Árbol de Utilidades (Utility Tree)
 
-image::img/utilityTree/utilityTree.jpg[Utility Tree, width=800]
+
+image::utilityTree/utilityTree.jpg[Utility Tree, width=800, align=center]
+
 
 === Escenarios de Atributos de Calidad (ASRs)
 

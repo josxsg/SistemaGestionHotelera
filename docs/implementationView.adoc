@@ -1,3 +1,5 @@
+:imagesdir: img
+
 === Vista de Implementación
 
 ==== Diagrama de especificación de componentes (v2 Hito 4)
@@ -17,7 +19,7 @@ A continuación, se detalla la especificación (<<comp spec>>) de cada component
     * **ASR-Escalabilidad:** Permite escalar horizontalmente solo el servicio de consultas, que recibirá la mayor carga de tráfico.
 * **Diagrama de Especificación:**
 
-image::img/ComponentDiagrams/ComponentDiagramConsultaDisponibilidad.png[alt="Especificación del Componente ConsultaDisponibilidad"]
+image::ComponentDiagrams/ComponentDiagramConsultaDisponibilidad.png[alt="Especificación del Componente ConsultaDisponibilidad", align=center]
 
 ---
 ====== Componente: GestionReservas
@@ -29,7 +31,7 @@ image::img/ComponentDiagrams/ComponentDiagramConsultaDisponibilidad.png[alt="Esp
     * **ASR-Integridad de Datos:** Asegura que una reserva solo se confirme si el pago es exitoso y el inventario está bloqueado.
 * **Diagrama de Especificación:**
 
-image::img/ComponentDiagrams/ComponentDiagramGestionReservas.png[alt="Especificación del Componente GestionReservas"]
+image::ComponentDiagrams/ComponentDiagramGestionReservas.png[alt="Especificación del Componente GestionReservas", align=center]
 
 ---
 ====== Componente: Pagos
@@ -41,7 +43,7 @@ image::img/ComponentDiagrams/ComponentDiagramGestionReservas.png[alt="Especifica
     * **ASR-Modificabilidad (MO-02):** Permite cambiar de proveedor de pasarela de pago afectando únicamente a este componente.
 * **Diagrama de Especificación:**
 
-image::img/ComponentDiagrams/ComponentDiagramPago.png[alt="Especificación del Componente Pagos"]
+image::ComponentDiagrams/ComponentDiagramPago.png[alt="Especificación del Componente Pagos", align=center]
 
 ---
 ====== Componente: GestionEstancias
@@ -53,7 +55,7 @@ image::img/ComponentDiagrams/ComponentDiagramPago.png[alt="Especificación del C
     * **ASR-Usabilidad (US-01):** Las interfaces provistas deben ser simples para soportar un flujo de trabajo rápido del personal.
 * **Diagrama de Especificación:**
 
-image::img/ComponentDiagrams/ComponentDiagramGestionEstancias.png[alt="Especificación del Componente GestionEstancias"]
+image::ComponentDiagrams/ComponentDiagramGestionEstancias.png[alt="Especificación del Componente GestionEstancias", align=center]
 
 ---
 ====== Componente: AdministracionCentral
@@ -65,7 +67,7 @@ image::img/ComponentDiagrams/ComponentDiagramGestionEstancias.png[alt="Especific
     * **ASR-Mantenibilidad:** Centraliza la gestión de reglas de negocio.
 * **Diagrama de Especificación:**
 
-image::img/ComponentDiagrams/ComponentDiagramAdministracionCentral.png[alt="Especificación del Componente AdministracionCentral"]
+image::ComponentDiagrams/ComponentDiagramAdministracionCentral.png[alt="Especificación del Componente AdministracionCentral", align=center]
 
 ---
 ====== Componente: Autenticacion
@@ -75,7 +77,7 @@ image::img/ComponentDiagrams/ComponentDiagramAdministracionCentral.png[alt="Espe
     * **ASR-Seguridad (SE-01, SE-02):** Centraliza el control de acceso. Satisface los escenarios de "Acceso por Roles" y "Prevención de Acceso no Autorizado".
 * **Diagrama de Especificación:**
 
-image::img/ComponentDiagrams/ComponentDiagramAutenticacion.png[alt="Especificación del Componente Autenticacion"]
+image::ComponentDiagrams/ComponentDiagramAutenticacion.png[alt="Especificación del Componente Autenticacion", align=center]
 
 ---
 ====== Componente: Notificaciones
@@ -86,7 +88,7 @@ image::img/ComponentDiagrams/ComponentDiagramAutenticacion.png[alt="Especificaci
     * **ASR-Rendimiento:** Permite el envío asíncrono de notificaciones para no bloquear el flujo principal de reserva del usuario.
 * **Diagrama de Especificación:**
 
-image::img/ComponentDiagrams/ComponentDiagramNotificaciones.png[alt="Especificación del Componente Notificaciones"]
+image::ComponentDiagrams/ComponentDiagramNotificaciones.png[alt="Especificación del Componente Notificaciones", align=center]
 
 ---
 ====== Componente: Auditoria
@@ -98,7 +100,7 @@ image::img/ComponentDiagrams/ComponentDiagramNotificaciones.png[alt="Especificac
     * **ASR-Confiabilidad:** Permite el análisis post-mortem de fallos transaccionales.
 * **Diagrama de Especificación:**
 
-image::img/ComponentDiagrams/ComponentDiagramAuditoria.png[alt="Especificación del Componente Auditoria"]
+image::ComponentDiagrams/ComponentDiagramAuditoria.png[alt="Especificación del Componente Auditoria", align=center]
 
 ===== Invariantes de Especificación de Componente
 
@@ -168,7 +170,7 @@ A continuación, se formaliza el contrato de especificación de cada interfaz pr
 
 Esta interfaz, optimizada para ASR-RE-01 (Rendimiento), provee las operaciones para el CU-01.
 
-image::img/interfaceDiagram/IConsultaDisponibilidad.jpg[Diagrama de Interfaz IConsultaDisponibilidad]
+image::interfaceDiagram/IConsultaDisponibilidad.jpg[Diagrama de Interfaz IConsultaDisponibilidad, align=center]
 
 .Contrato de Operación: buscarDisponibilidad
 
@@ -198,7 +200,7 @@ POST-ERR-01: Si PRE-01, PRE-02 o PRE-03 fallan, se debe retornar una excepción 
 
 Interfaz transaccional principal para crear (CU-02) y cancelar (CU-04) reservas, optimizada para ASR-CF-01 (Confiabilidad).
 
-image::img/interfaceDiagram/IGestionReserva.jpg[Diagrama de Interfaz IGestionReserva]
+image::interfaceDiagram/IGestionReserva.jpg[Diagrama de Interfaz IGestionReserva, align=center]
 
 .Contrato de Operación: crearReserva
 
@@ -262,7 +264,7 @@ POST-ERR-01: Si PRE-03 falla (política no lo permite), la operación retorna fa
 
 Permite a un huésped consultar sus propias reservas (CU-06).
 
-image::img/interfaceDiagram/IConsultaCliente.jpg[Diagrama de Interfaz IConsultaCliente]
+image::interfaceDiagram/IConsultaCliente.jpg[Diagrama de Interfaz IConsultaCliente, align=center]
 
 .Contrato de Operación: obtenerMisReservas
 
@@ -284,7 +286,7 @@ POST-ERR-01: Si PRE-01 falla, se retorna AccesoDenegadoException (ASR-SE-01).
 
 Permite al personal (Recepcionista) buscar reservas (CU-11).
 
-image::img/interfaceDiagram/IBusquedaReserva.jpg[Diagrama de Interfaz IBusquedaReserva]
+image::interfaceDiagram/IBusquedaReserva.jpg[Diagrama de Interfaz IBusquedaReserva, align=center]
 
 .Contrato de Operación: buscarReservaPorId
 
@@ -324,7 +326,7 @@ POST-ERR-01: Si PRE-01 falla, se retorna AccesoDenegadoException (ASR-SE-02).
 
 Encapsula el procesamiento de cobros (CU-03, CU-08, CU-10), garantizando ASR-CF-02 (0 dobles cobros).
 
-image::img/interfaceDiagram/IPagos.jpg[Diagrama de Interfaz IPagos]
+image::interfaceDiagram/IPagos.jpg[Diagrama de Interfaz IPagos, align=center]
 
 .Contrato de Operación: procesarPago
 
@@ -356,7 +358,7 @@ POST-ERR-03: Si la conexión con IPasarelaExterna falla (contingencia ASR-DA-02)
 
 Procesa devoluciones de dinero (CU-04).
 
-image::img/interfaceDiagram/IReembolso.jpg[Diagrama de Interfaz IReembolso]
+image::interfaceDiagram/IReembolso.jpg[Diagrama de Interfaz IReembolso, align=center]
 
 .Contrato de Operación: procesarReembolso
 
@@ -386,7 +388,7 @@ POST-ERR-01: Si la pasarela rechaza la devolución, retorna Reembolso con estado
 
 Maneja el registro de entrada del huésped (CU-07).
 
-image::img/interfaceDiagram/IGestionCheckIn.jpg[Diagrama de Interfaz IGestionCheckIn]
+image::interfaceDiagram/IGestionCheckIn.jpg[Diagrama de Interfaz IGestionCheckIn, align=center]
 
 .Contrato de Operación: realizarCheckIn
 
@@ -418,7 +420,7 @@ POST-ERR-01: Si PRE-02 o PRE-03 fallan, retorna CheckInInvalidoException. No se 
 
 Maneja el registro de salida del huésped (CU-08).
 
-image::img/interfaceDiagram/IGestionCheckOut.jpg[Diagrama de Interfaz IGestionCheckOut]
+image::interfaceDiagram/IGestionCheckOut.jpg[Diagrama de Interfaz IGestionCheckOut, align=center]
 
 .Contrato de Operación: realizarCheckOut
 
@@ -452,7 +454,7 @@ POST-ERR-01: Si PRE-03 falla (cuenta no saldada), retorna CuentaPendienteExcepti
 
 Maneja el cambio de habitación (CU-09) y la consulta de estados (CU-12).
 
-image::img/interfaceDiagram/IGestionHabitacion.jpg[Diagrama de Interfaz IGestionHabitacion]
+image::interfaceDiagram/IGestionHabitacion.jpg[Diagrama de Interfaz IGestionHabitacion, align=center]
 
 .Contrato de Operación: cambiarHabitacion
 
@@ -500,7 +502,7 @@ POST-01: Retorna la lista de estados de todas las habitaciones del hotel (optimi
 
 Registra cargos adicionales a la estancia (CU-10).
 
-image::img/interfaceDiagram/IConsumos.jpg[Diagrama de Interfaz IConsumos]
+image::interfaceDiagram/IConsumos.jpg[Diagrama de Interfaz IConsumos, align=center]
 
 .Contrato de Operación: registrarConsumo
 
@@ -528,7 +530,15 @@ POST-ERR-01: Si PRE-01 falla (estancia no activa), retorna EstanciaInactivaExcep
 
 (Interfaces: IInventario, ITarifas, IPoliticas, ICatalogoHotel, IGestionPersonal)
 
-image::img/interfaceDiagram/IInventario.jpg[Diagrama de Interfaz IInventario] image::img/interfaceDiagram/ITarifas.jpg[Diagrama de Interfaz ITarifas] image::img/interfaceDiagram/IPoliticas.jpg[Diagrama de Interfaz IPoliticas] image::img/interfaceDiagram/ICatalogoHotel.jpg[Diagrama de Interfaz ICatalogoHotel] image::img/interfaceDiagram/IGestionPersonal.jpg[Diagrama de Interfaz IGestionPersonal]
+image::interfaceDiagram/IInventario.jpg[Diagrama de Interfaz IInventario, align=center]
+
+image::interfaceDiagram/ITarifas.jpg[Diagrama de Interfaz ITarifas, align=center]
+
+image::interfaceDiagram/IPoliticas.jpg[Diagrama de Interfaz IPoliticas, align=center]
+
+image::interfaceDiagram/ICatalogoHotel.jpg[Diagrama de Interfaz ICatalogoHotel, align=center]
+
+image::interfaceDiagram/IGestionPersonal.jpg[Diagrama de Interfaz IGestionPersonal]
 
 .Contrato Genérico para Operaciones CRUD (gestionar...)
 
@@ -558,7 +568,7 @@ POST-ERR-02: Si PRE-02 falla (datos inválidos), se debe retornar ValidacionExce
 
 Gestiona login, registro (CU-05, CU-25) y validación de tokens.
 
-image::img/interfaceDiagram/ISesionUsuario.jpg[Diagrama de Interfaz ISesionUsuario]
+image::interfaceDiagram/ISesionUsuario.jpg[Diagrama de Interfaz ISesionUsuario, align=center]
 
 .Contrato de Operación: login
 
@@ -616,7 +626,7 @@ POST-ERR-01: Si el token es inválido o expirado, retorna TokenInvalidoException
 
 Verifica roles y permisos (ASR-SE-01, ASR-SE-02).
 
-image::img/interfaceDiagram/IAutorizacion.jpg[Diagrama de Interfaz IAutorizacion]
+image::interfaceDiagram/IAutorizacion.jpg[Diagrama de Interfaz IAutorizacion, align=center]
 
 .Contrato de Operación: verificarPermiso
 
@@ -640,7 +650,7 @@ POST-03: Si retorna false, se emite un evento de auditoría "ACCESO_DENEGADO_ROL
 
 Abstracción para envío asíncrono de comunicaciones (optimizado para no bloquear al cliente).
 
-image::img/interfaceDiagram/INotificacion.jpg[Diagrama de Interfaz INotificacion]
+image::interfaceDiagram/INotificacion.jpg[Diagrama de Interfaz INotificacion, align=center]
 
 .Contrato de Operación: enviarEmail / enviarSMS
 
@@ -668,7 +678,7 @@ POST-ERR-01: Si la cola de mensajería está caída, retorna false (o lanza Cola
 
 Recibe eventos de log de alta prioridad (ASR-AU-01).
 
-image::img/interfaceDiagram/IAuditoria.jpg[Diagrama de Interfaz IAuditoria]
+image::interfaceDiagram/IAuditoria.jpg[Diagrama de Interfaz IAuditoria, align=center]
 
 .Contrato de Operación: registrarEvento
 
@@ -688,7 +698,7 @@ POST-02: La operación es "fire-and-forget" y no debe lanzar excepciones al comp
 
 Permite al actor Auditor rastrear transacciones (CU-34).
 
-image::img/interfaceDiagram/IConsultaTrazabilidad.jpg[Diagrama de Interfaz IConsultaTrazabilidad]
+image::interfaceDiagram/IConsultaTrazabilidad.jpg[Diagrama de Interfaz IConsultaTrazabilidad, align=center]
 
 .Contrato de Operación: rastrearTransaccion
 
@@ -715,349 +725,354 @@ Esta sección detalla la fase de **Interacción** del proceso CBSE. El objetivo 
 ===== CU-01: Consultar disponibilidad de habitaciones
 
 ====== Consultar Disponibilidad
-image::img/CommunicationDiagrams/CU-01/ConsultarDisponibilidad.png[alt="Diagrama de Comunicación: Consultar Disponibilidad"]
 
----
+image::CommunicationDiagrams/CU-01/ConsultarDisponibilidad.png[alt="Diagrama de Comunicación: Consultar Disponibilidad", align=center]
+
 
 ===== CU-02: Reservar una habitación
 
 ====== Validar Datos Huesped
-image::img/CommunicationDiagrams/CU-02/ValidarDatosHuesped.png[alt="Diagrama de Comunicación: Validar Datos Huesped"]
 
----
+image::CommunicationDiagrams/CU-02/ValidarDatosHuesped.png[alt="Diagrama de Comunicación: Validar Datos Huesped", align=center]
+
 ====== Congelar Precio
-image::img/CommunicationDiagrams/CU-02/CongelarPrecio.png[alt="Diagrama de Comunicación: Congelar Precio"]
 
----
+image::CommunicationDiagrams/CU-02/CongelarPrecio.png[alt="Diagrama de Comunicación: Congelar Precio", align=center]
+
+
 ====== Bloquear Habitacion
-image::img/CommunicationDiagrams/CU-02/BloquearHabitacion.png[alt="Diagrama de Comunicación: Bloquear Habitacion"]
 
----
+image::CommunicationDiagrams/CU-02/BloquearHabitacion.png[alt="Diagrama de Comunicación: Bloquear Habitacion", align=center]
+
 
 ===== CU-03: Realizar el pago de la reservación
 
 ====== Solicitar Cobro
-image::img/CommunicationDiagrams/CU-03/SolicitarCobro.png[alt="Diagrama de Comunicación: Solicitar Cobro"]
 
----
+image::CommunicationDiagrams/CU-03/SolicitarCobro.png[alt="Diagrama de Comunicación: Solicitar Cobro", align=center]
+
 ====== Proteger Datos
-image::img/CommunicationDiagrams/CU-03/ProtegerDatos.png[alt="Diagrama de Comunicación: Proteger Datos"]
 
----
+image::CommunicationDiagrams/CU-03/ProtegerDatos.png[alt="Diagrama de Comunicación: Proteger Datos", align=center]
+
 ====== Finalizar Pago
-image::img/CommunicationDiagrams/CU-03/FinalizarPago.png[alt="Diagrama de Comunicación: Finalizar Pago"]
 
----
+image::CommunicationDiagrams/CU-03/FinalizarPago.png[alt="Diagrama de Comunicación: Finalizar Pago", align=center]
+
 
 ===== CU-04: Cancelar una reservación
 
 ====== Solicitar Cancelacion
-image::img/CommunicationDiagrams/CU-04/SolicitarCancelacion.png[alt="Diagrama de Comunicación: Solicitar Cancelacion"]
 
----
+image::CommunicationDiagrams/CU-04/SolicitarCancelacion.png[alt="Diagrama de Comunicación: Solicitar Cancelacion", align=center]
+
 ====== Procesar Reembolso
-image::img/CommunicationDiagrams/CU-04/ProcesarReembolso.png[alt="Diagrama de Comunicación: Procesar Reembolso"]
 
----
+image::CommunicationDiagrams/CU-04/ProcesarReembolso.png[alt="Diagrama de Comunicación: Procesar Reembolso", align=center]
+
 ====== Cancelar Habitaciones
-image::img/CommunicationDiagrams/CU-04/CancelarHabitaciones.png[alt="Diagrama de Comunicación: Cancelar Habitaciones"]
 
----
+image::CommunicationDiagrams/CU-04/CancelarHabitaciones.png[alt="Diagrama de Comunicación: Cancelar Habitaciones", align=center]
+
 
 ===== CU-05: Crear cuenta de huésped
 
 ====== Validar Huesped
-image::img/CommunicationDiagrams/CU-05/ValidarHuesped.png[alt="Diagrama de Comunicación: Validar Huesped"]
 
----
+image::CommunicationDiagrams/CU-05/ValidarHuesped.png[alt="Diagrama de Comunicación: Validar Huesped", align=center]
+
 ====== Crear Cuenta Huesped
-image::img/CommunicationDiagrams/CU-05/CrearCuentaHuesped.png[alt="Diagrama de Comunicación: Crear Cuenta Huesped"]
 
----
+image::CommunicationDiagrams/CU-05/CrearCuentaHuesped.png[alt="Diagrama de Comunicación: Crear Cuenta Huesped", align=center]
+
 
 ===== CU-06: Consultar mis reservaciones
 
 ====== Consultar Reservas
-image::img/CommunicationDiagrams/CU-06/ConsultarReservas.png[alt="Diagrama de Comunicación: Consultar Reservas"]
 
----
+image::CommunicationDiagrams/CU-06/ConsultarReservas.png[alt="Diagrama de Comunicación: Consultar Reservas", align=center]
+
 
 ===== CU-07: Registrar salida (Check-out)
 
 ====== Calcular Consumos
-image::img/CommunicationDiagrams/CU-07/CalcularConsumos.png[alt="Diagrama de Comunicación: Calcular Consumos"]
 
----
+image::CommunicationDiagrams/CU-07/CalcularConsumos.png[alt="Diagrama de Comunicación: Calcular Consumos", align=center]
+
 ====== Finalizar Estancia
-image::img/CommunicationDiagrams/CU-07/FinalizarEstancia.png[alt="Diagrama de Comunicación: Finalizar Estancia"]
 
----
+image::CommunicationDiagrams/CU-07/FinalizarEstancia.png[alt="Diagrama de Comunicación: Finalizar Estancia", align=center]
+
 
 ===== CU-08: Registrar llegada (check-in)
 
 ====== Validar Llegada
-image::img/CommunicationDiagrams/CU-08/ValidarLlegada.png[alt="Diagrama de Comunicación: Validar Llegada"]
 
----
+image::CommunicationDiagrams/CU-08/ValidarLlegada.png[alt="Diagrama de Comunicación: Validar Llegada", align=center]
+
 ====== Registrar Llegada
-image::img/CommunicationDiagrams/CU-08/RegistrarLlegada.png[alt="Diagrama de Comunicación: Registrar Llegada"]
 
----
+image::CommunicationDiagrams/CU-08/RegistrarLlegada.png[alt="Diagrama de Comunicación: Registrar Llegada", align=center]
+
 
 ===== CU-09: Cambiar de habitación a un huésped
 
 ====== Cambiar Habitacion
-image::img/CommunicationDiagrams/CU-09/CambiarHabitacion.png[alt="Diagrama de Comunicación: Cambiar Habitacion"]
 
----
+image::CommunicationDiagrams/CU-09/CambiarHabitacion.png[alt="Diagrama de Comunicación: Cambiar Habitacion", align=center]
+
 
 ===== CU-10: Registrar consumo o servicio
 
 ====== Registrar Consumo
-image::img/CommunicationDiagrams/CU-10/RegistrarConsumo.png[alt="Diagrama de Comunicación: Registrar Consumo"]
 
----
+image::CommunicationDiagrams/CU-10/RegistrarConsumo.png[alt="Diagrama de Comunicación: Registrar Consumo", align=center]
+
 
 ===== CU-11: Buscar reserva de huésped
 
 ====== Consultar Reservas De Huesped
-image::img/CommunicationDiagrams/CU-11/ConsultarReservasDeHuesped.png[alt="Diagrama de Comunicación: Consultar Reservas De Huesped"]
 
----
+image::CommunicationDiagrams/CU-11/ConsultarReservasDeHuesped.png[alt="Diagrama de Comunicación: Consultar Reservas De Huesped", align=center]
+
 
 ===== CU-12: Consultar estado de habitación
 
 ====== Obtener Estado Habitacion
-image::img/CommunicationDiagrams/CU-12/ObtenerEstadoHabitacion.png[alt="Diagrama de Comunicación: Obtener Estado Habitacion"]
 
----
+image::CommunicationDiagrams/CU-12/ObtenerEstadoHabitacion.png[alt="Diagrama de Comunicación: Obtener Estado Habitacion", align=center]
+
 
 ===== CU-13: Registrar nuevo hotel
 
 ====== Registrar Hotel
-image::img/CommunicationDiagrams/CU-13/RegistrarHotel.png[alt="Diagrama de Comunicación: Registrar Hotel"]
 
----
+image::CommunicationDiagrams/CU-13/RegistrarHotel.png[alt="Diagrama de Comunicación: Registrar Hotel", align=center]
+
 
 ===== CU-14: Consultar información de hotel
 
 ====== Consultar Hotel
-image::img/CommunicationDiagrams/CU-14/ConsultarHotel.png[alt="Diagrama de Comunicación: Consultar Hotel"]
 
----
+image::CommunicationDiagrams/CU-14/ConsultarHotel.png[alt="Diagrama de Comunicación: Consultar Hotel", align=center]
+
 
 ===== CU-15: Actualizar información de hotel
 
 ====== Obtener Datos Hotel
-image::img/CommunicationDiagrams/CU-15/ObtenerDatosHotel.png[alt="Diagrama de Comunicación: Obtener Datos Hotel"]
 
----
+image::CommunicationDiagrams/CU-15/ObtenerDatosHotel.png[alt="Diagrama de Comunicación: Obtener Datos Hotel", align=center]
+
 ====== Actualizar Hotel
-image::img/CommunicationDiagrams/CU-15/ActualizarHotel.png[alt="Diagrama de Comunicación: Actualizar Hotel"]
 
----
+image::CommunicationDiagrams/CU-15/ActualizarHotel.png[alt="Diagrama de Comunicación: Actualizar Hotel", align=center]
+
 
 ===== CU-16: Desactivar hotel
 
 ====== Validar Desactivacion Hotel
-image::img/CommunicationDiagrams/CU-16/ValidarDesactivacionHotel.png[alt="Diagrama de Comunicación: Validar Desactivacion Hotel"]
 
----
+image::CommunicationDiagrams/CU-16/ValidarDesactivacionHotel.png[alt="Diagrama de Comunicación: Validar Desactivacion Hotel", align=center]
+
 ====== Desactivar Hotel
-image::img/CommunicationDiagrams/CU-16/DesactivarHotel.png[alt="Diagrama de Comunicación: Desactivar Hotel"]
 
----
+image::CommunicationDiagrams/CU-16/DesactivarHotel.png[alt="Diagrama de Comunicación: Desactivar Hotel", align=center]
+
 
 ===== CU-17: Registrar tipo de habitación
 
 ====== Validar Nuevo Resgitro
-image::img/CommunicationDiagrams/CU-17/ValidarNuevoResgitro.png[alt="Diagrama de Comunicación: Validar Nuevo Resgitro"]
 
----
+image::CommunicationDiagrams/CU-17/ValidarNuevoResgitro.png[alt="Diagrama de Comunicación: Validar Nuevo Resgitro", align=center]
+
 ====== Crear Tipo Habitacion
-image::img/CommunicationDiagrams/CU-17/CrearTipoHabitacion.png[alt="Diagrama de Comunicación: Crear Tipo Habitacion"]
 
----
+image::CommunicationDiagrams/CU-17/CrearTipoHabitacion.png[alt="Diagrama de Comunicación: Crear Tipo Habitacion", align=center]
+
 
 ===== CU-18: Consultar tipos de habitación
 
 ====== Buscar Tipos Habitacion
-image::img/CommunicationDiagrams/CU-18/BuscarTiposHabitacion.png[alt="Diagrama de Comunicación: Buscar Tipos Habitacion"]
 
----
+image::CommunicationDiagrams/CU-18/BuscarTiposHabitacion.png[alt="Diagrama de Comunicación: Buscar Tipos Habitacion", align=center]
+
 
 ===== CU-19: Actualizar tipo de habitación
 
 ====== Obtener Datos Tipo Habitacion
-image::img/CommunicationDiagrams/CU-19/ObtenerDatosTipoHabitacion.png[alt="Diagrama de Comunicación: Obtener Datos Tipo Habitacion"]
 
----
+image::CommunicationDiagrams/CU-19/ObtenerDatosTipoHabitacion.png[alt="Diagrama de Comunicación: Obtener Datos Tipo Habitacion", align=center]
+
 ====== Actualizar Tipo Habitacion
-image::img/CommunicationDiagrams/CU-19/ActualizarTipoHabitacion.png[alt="Diagrama de Comunicación: Obtener Actualizar Tipo Habitacion"]
 
----
+image::CommunicationDiagrams/CU-19/ActualizarTipoHabitacion.png[alt="Diagrama de Comunicación: Obtener Actualizar Tipo Habitacion", align=center]
+
 
 ===== CU-20: Desactivar tipo de habitación
 
 ====== Validar Dependencias Tipo Habitacion
-image::img/CommunicationDiagrams/CU-20/ValidarDependenciasTipoHabitacion.png[alt="Diagrama de Comunicación: Validar Dependencias Tipo Habitacion"]
 
----
+image::CommunicationDiagrams/CU-20/ValidarDependenciasTipoHabitacion.png[alt="Diagrama de Comunicación: Validar Dependencias Tipo Habitacion", align=center]
+
 ====== Desactivar Tipo Habitacion
-image::img/CommunicationDiagrams/CU-20/DesactivarTipoHabitacion.png[alt="Diagrama de Comunicación: Desactivar Tipo Habitacion"]
 
----
+image::CommunicationDiagrams/CU-20/DesactivarTipoHabitacion.png[alt="Diagrama de Comunicación: Desactivar Tipo Habitacion", align=center]
+
 
 ===== CU-21: Registrar habitación
 
 ====== Validar Unicidad Numero Habitacion
-image::img/CommunicationDiagrams/CU-21/ValidarUnicidadNumeroHabitacion.png[alt="Diagrama de Comunicación: Validar Unicidad Numero Habitacion"]
 
----
+image::CommunicationDiagrams/CU-21/ValidarUnicidadNumeroHabitacion.png[alt="Diagrama de Comunicación: Validar Unicidad Numero Habitacion", align=center]
+
 ====== Registrar Habitacion
-image::img/CommunicationDiagrams/CU-21/RegistrarHabitacion.png[alt="Diagrama de Comunicación: Registrar Habitacion"]
 
----
+image::CommunicationDiagrams/CU-21/RegistrarHabitacion.png[alt="Diagrama de Comunicación: Registrar Habitacion", align=center]
+
 
 ===== CU-22: Consultar estado de habitación (Admin)
 
 ====== Obtener Estado Habitacion
-image::img/CommunicationDiagrams/CU-22/ObtenerEstadoHabitacion.png[alt="Diagrama de Comunicación: Obtener Estado Habitacion"]
 
----
+image::CommunicationDiagrams/CU-22/ObtenerEstadoHabitacion.png[alt="Diagrama de Comunicación: Obtener Estado Habitacion", align=center]
+
 
 ===== CU-23: Actualizar estado de habitación
 
 ====== Obtener Detalle Habitacion
-image::img/CommunicationDiagrams/CU-23/ObtenerDetalleHabitacion.png[alt="Diagrama de Comunicación: Obtener Detalle Habitacion"]
 
----
+image::CommunicationDiagrams/CU-23/ObtenerDetalleHabitacion.png[alt="Diagrama de Comunicación: Obtener Detalle Habitacion", align=center]
+
 ====== Cambiar Estado Habitacion
-image::img/CommunicationDiagrams/CU-23/CambiarEstadoHabitacion.png[alt="Diagrama de Comunicación: Cambiar Estado Habitacion"]
 
----
+image::CommunicationDiagrams/CU-23/CambiarEstadoHabitacion.png[alt="Diagrama de Comunicación: Cambiar Estado Habitacion", align=center]
+
 
 ===== CU-24: Desactivar habitación
 
 ====== Validar Baja Habitacion
-image::img/CommunicationDiagrams/CU-24/ValidarBajaHabitacion.png[alt="Diagrama de Comunicación: Validar Baja Habitacion"]
 
----
+image::CommunicationDiagrams/CU-24/ValidarBajaHabitacion.png[alt="Diagrama de Comunicación: Validar Baja Habitacion", align=center]
+
 ====== Desactivar Habitacion
-image::img/CommunicationDiagrams/CU-24/DesactivarHabitacion.png[alt="Diagrama de Comunicación: Desactivar Habitacion"]
 
----
+image::CommunicationDiagrams/CU-24/DesactivarHabitacion.png[alt="Diagrama de Comunicación: Desactivar Habitacion", align=center]
+
 
 ===== CU-25: Registrar cuenta de personal
 
 ====== Validar Disponibilidad Correo
-image::img/CommunicationDiagrams/CU-25/ValidarDisponibilidadCorreo.png[alt="Diagrama de Comunicación: Validar Disponibilidad Correo"]
 
----
+image::CommunicationDiagrams/CU-25/ValidarDisponibilidadCorreo.png[alt="Diagrama de Comunicación: Validar Disponibilidad Correo", align=center]
+
 ====== Registrar Cuenta Personal
-image::img/CommunicationDiagrams/CU-25/RegistrarCuentaPersonal.png[alt="Diagrama de Comunicación: Registrar Cuenta Personal"]
 
----
+image::CommunicationDiagrams/CU-25/RegistrarCuentaPersonal.png[alt="Diagrama de Comunicación: Registrar Cuenta Personal", align=center]
+
 
 ===== CU-26: Consultar cuentas de personal
 
 ====== Obtener Detalle Personal
-image::img/CommunicationDiagrams/CU-26/ObtenerDetallePersonal.png[alt="Diagrama de Comunicación: Obtener Detalle Personal"]
 
----
+image::CommunicationDiagrams/CU-26/ObtenerDetallePersonal.png[alt="Diagrama de Comunicación: Obtener Detalle Personal, align=center"]
+
 ====== Buscar Personal
-image::img/CommunicationDiagrams/CU-26/BuscarPersonal.png[alt="Diagrama de Comunicación: Buscar Personal"]
 
----
+image::CommunicationDiagrams/CU-26/BuscarPersonal.png[alt="Diagrama de Comunicación: Buscar Personal", align=center]
+
 
 ===== CU-27: Actualizar cuenta de personal
 
 ====== Iniciar Edicion Cuenta
-image::img/CommunicationDiagrams/CU-27/IniciarEdicionCuenta.png[alt="Diagrama de Comunicación: Iniciar Edicion Cuenta"]
 
----
+image::CommunicationDiagrams/CU-27/IniciarEdicionCuenta.png[alt="Diagrama de Comunicación: Iniciar Edicion Cuenta", align=center]
+
 ====== Actualizar Cuenta Personal
-image::img/CommunicationDiagrams/CU-27/ActualizarCuentaPersonal.png[alt="Diagrama de Comunicación: Actualizar Cuenta Personal"]
 
----
+image::CommunicationDiagrams/CU-27/ActualizarCuentaPersonal.png[alt="Diagrama de Comunicación: Actualizar Cuenta Personal", align=center]
+
 
 ===== CU-28: Dar de baja cuenta personal
 
 ====== Validar Desactivacion
-image::img/CommunicationDiagrams/CU-28/ValidarDesactivacion.png[alt="Diagrama de Comunicación: Validar Desactivacion"]
 
----
+image::CommunicationDiagrams/CU-28/ValidarDesactivacion.png[alt="Diagrama de Comunicación: Validar Desactivacion", align=center]
+
 ====== Desactivar Cuenta
-image::img/CommunicationDiagrams/CU-28/DesactivarCuenta.png[alt="Diagrama de Comunicación: Desactivar Cuenta"]
 
----
+image::CommunicationDiagrams/CU-28/DesactivarCuenta.png[alt="Diagrama de Comunicación: Desactivar Cuenta", align=center]
+
 
 ===== CU-29: Gestionar tarifa base
 
 ====== Obtener Tarifas Base
-image::img/CommunicationDiagrams/CU-29/ObtenerTarifasBase.png[alt="Diagrama de Comunicación: Obtener Tarifas Base"]
 
----
+image::CommunicationDiagrams/CU-29/ObtenerTarifasBase.png[alt="Diagrama de Comunicación: Obtener Tarifas Base", align=center]
+
 ====== Actualizar Tarifa Base
-image::img/CommunicationDiagrams/CU-29/ActualizarTarifaBase.png[alt="Diagrama de Comunicación: Actualizar Tarifa Base"]
 
----
+image::CommunicationDiagrams/CU-29/ActualizarTarifaBase.png[alt="Diagrama de Comunicación: Actualizar Tarifa Base", align=center]
+
 
 ===== CU-30: Gestionar precio por día
 
 ====== Restaurar Tarifa Base
-image::img/CommunicationDiagrams/CU-30/RestaurarTarifaBase.png[alt="Diagrama de Comunicación: Restaurar Tarifa Base"]
 
----
+image::CommunicationDiagrams/CU-30/RestaurarTarifaBase.png[alt="Diagrama de Comunicación: Restaurar Tarifa Base", align=center]
+
 ====== Obtener Calendario Tarifas
-image::img/CommunicationDiagrams/CU-30/ObtenerCalendarioTarifas.png[alt="Diagrama de Comunicación: Obtener Calendario Tarifas"]
 
----
+image::CommunicationDiagrams/CU-30/ObtenerCalendarioTarifas.png[alt="Diagrama de Comunicación: Obtener Calendario Tarifas", align=center]
+
 ====== Asignar Tarifa Especial
-image::img/CommunicationDiagrams/CU-30/AsignarTarifaEspecial.png[alt="Diagrama de Comunicación: Asignar Tarifa Especial"]
 
----
+image::CommunicationDiagrams/CU-30/AsignarTarifaEspecial.png[alt="Diagrama de Comunicación: Asignar Tarifa Especial", align=center]
+
 
 ===== CU-31: Consultar historial de tarifas
 
 ====== Consultar Historial Tarifas
-image::img/CommunicationDiagrams/CU-31/ConsultarHistorialTarifas.png[alt="Diagrama de Comunicación: Consultar Historial Tarifas"]
 
----
+image::CommunicationDiagrams/CU-31/ConsultarHistorialTarifas.png[alt="Diagrama de Comunicación: Consultar Historial Tarifas", align=center]
+
 
 ===== CU-32: Gestionar política de overbooking
 
 ====== Obtener Overbooking
-image::img/CommunicationDiagrams/CU-32/RestaurarTarifaBase.png[alt="Diagrama de Comunicación: Obtener Overbooking"]
 
----
+image::CommunicationDiagrams/CU-32/RestaurarTarifaBase.png[alt="Diagrama de Comunicación: Obtener Overbooking", align=center]
+
 ====== Actualizar Overbooking
-image::img/CommunicationDiagrams/CU-32/ActualizarOverbooking.png[alt="Diagrama de Comunicación: Actualizar Overbooking"]
 
----
+image::CommunicationDiagrams/CU-32/ActualizarOverbooking.png[alt="Diagrama de Comunicación: Actualizar Overbooking", align=center]
+
 
 ===== CU-33: Gestionar política de cancelación
 
 ====== Obtener Politicas Cancelacion
-image::img/CommunicationDiagrams/CU-33/ObtenerPoliticasCancelacion.png[alt="Diagrama de Comunicación: Obtener Politicas Cancelacion"]
 
----
+image::CommunicationDiagrams/CU-33/ObtenerPoliticasCancelacion.png[alt="Diagrama de Comunicación: Obtener Politicas Cancelacion", align=center]
+
 ====== Actualizar Politica Cancelacion
-image::img/CommunicationDiagrams/CU-33/ActualizarPoliticaCancelacion.png[alt="Diagrama de Comunicación: Actualizar Politica Cancelacion"]
 
----
+image::CommunicationDiagrams/CU-33/ActualizarPoliticaCancelacion.png[alt="Diagrama de Comunicación: Actualizar Politica Cancelacion", align=center]
+
 
 ===== CU-34: Rastrear una transacción
 
 ====== Obtener Trazabilidad
-image::img/CommunicationDiagrams/CU-34/ObtenerTrazabilidad.png[alt="Diagrama de Comunicación: Obtener Trazabilidad"]
+
+image::CommunicationDiagrams/CU-34/ObtenerTrazabilidad.png[alt="Diagrama de Comunicación: Obtener Trazabilidad", align=center]
 
 ==== Vista de Despliegue
 
 ===== Topología de Infraestructura
 
 La Vista de Despliegue describe el mapeo de los componentes de software sobre la infraestructura de hardware y entornos de ejecución virtualizados. Se ha seleccionado una topología de **N-Capas distribuida**, diseñada para soportar los requisitos de Alta Disponibilidad (**ASR-DA-01**) y Escalabilidad Elástica.
-image::img/deploymentDiagram/DiagramaDespliegue.png[align="center", title="DiagramaDespliegue: Infraestructura N-Capas en AWS/Cloud"]
+
+
+image::deploymentDiagram/DiagramaDespliegue.png[align=center, title="DiagramaDespliegue: Infraestructura N-Capas en AWS/Cloud"]
+
 
 El diagrama de despliegue ilustra la siguiente distribución de nodos:
 

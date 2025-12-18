@@ -17,6 +17,7 @@
 :note-caption: Nota
 :tip-caption: Consejo
 :warning-caption: Advertencia
+:imagesdir: img
 
 
 include::introduction.adoc[]
