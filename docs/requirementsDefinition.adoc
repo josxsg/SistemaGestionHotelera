@@ -604,42 +604,11 @@ ID:: CU-13
 Nombre:: Registrar nuevo hotel
 Autor:: Angel Jonathan Puch Hernández
 Fecha de actualización:: 03-oct-25
-Descripción:: El Administrador da de alta un nuevo hotel en el sistema, registrando su información básica para que pueda ser gestionado.
-Actor(es):: Administrador
-Disparador:: El Administrador selecciona la opción para Registrar Nuevo Hotel desde el panel de administración.
-Precondiciones::
-Flujo Normal::
-. El sistema muestra el formulario para el registro de un nuevo hotel.
-. El administrador ingresa los datos del hotel y confirma la acción.
-. El sistema valida que los datos estén completos y con el formato correcto. Verifica que no exista otro hotel con los mismos identificadores únicos, registra el nuevo hotel y muestra un mensaje de confirmación al Administrador.
-. Termina CU
-Flujos Alternos::
-FA 3.1 Datos inválidos o incompletos:
-. Si el sistema verifica si hay errores en la validación, notifica al Administrador resaltando los campos incorrectos.
-. Se regresa al paso 1 del flujo normal, manteniendo la información ya ingresada.
-+
-FA 3.2 Hotel duplicado:
-. Si el sistema detecta que el hotel ya existe, informa al Administrador del duplicado y cancela la operación.
-. El flujo regresa al paso 1.
-Excepciones::
-EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos
-. Termina CU
-Postcondiciones:: PS-01: Se ha creado un nuevo registro de hotel en el sistema, disponible para la gestión de habitaciones y tarifas.
-Reglas de negocio::
-
-[#CU-14]
-==== CU-14: Consultar información de hotel
-
-ID:: CU-14
-Nombre:: Consultar información de hotel
-Autor:: Angel Jonathan Puch Hernández
-Fecha de actualización:: 03-oct-25
 Descripción:: Este caso de uso permite que el ADMINISTRADOR logre incorporar una nueva propiedad a la cadena mediante la captura de la información fiscal, ubicación y características generales. El resultado es la creación de un nuevo registro de HOTEL en el catálogo del Sistema, habilitándolo para la configuración de habitaciones.
 Actor(es):: ADMINISTRADOR
 Disparador:: El ADMINISTRADOR selecciona la opción "Registrar Nuevo Hotel" en el panel de configuración global.
 Precondiciones::
-PRE-01 El ADMINISTRADOR ha iniciado sesión con privilegios de superusuario en el Sistema.
+PRE-01: El ADMINISTRADOR ha iniciado sesión con privilegios de superusuario en el Sistema.
 Flujo Normal::
 . El Sistema despliega el formulario de registro para una nueva propiedad.
 . El ADMINISTRADOR ingresa los datos generales del HOTEL (Nombre, Dirección, Categoría, RFC/NIT).
@@ -649,26 +618,57 @@ Flujo Normal::
 . El Sistema muestra un mensaje de "Hotel Registrado Exitosamente".
 . Termina CU.
 Flujos Alternos::
-FA 3.1 Datos inválidos o incompletos
+FA 3.1: Datos inválidos o incompletos
 . El Sistema detecta errores de formato o campos vacíos obligatorios.
 . El Sistema resalta los campos afectados y muestra un mensaje de ayuda.
 . El ADMINISTRADOR corrige la información.
 . Regresa al paso 3 del flujo normal.
-+
-FA 4.1 Hotel duplicado
+FA 4.1: Hotel duplicado
 . El Sistema detecta que ya existe un HOTEL con el mismo nombre o identificador fiscal.
 . El Sistema muestra el mensaje "El Hotel ya se encuentra registrado" y bloquea el guardado.
 . El ADMINISTRADOR modifica los datos o cancela la operación.
 . Regresa al paso 2 del flujo normal.
 Excepciones::
-EX-01 Sin conexión con la base de datos
-. El sistema muestra al ADMINISTRADOR el mensaje de error de conexión con la base de datos
-. El ADMINISTRADOR cierra el mensaje
-. Termina CU
+EX-01: Sin conexión con la base de datos
+. El sistema muestra al ADMINISTRADOR el mensaje de error de conexión con la base de datos.
+. El ADMINISTRADOR cierra el mensaje.
+. Termina CU.
 Postcondiciones::
-POST-01 Existe un nuevo registro de HOTEL en la base de datos con estado "Activo".
+POST-01: Existe un nuevo registro de HOTEL en la base de datos con estado "Activo".
 Reglas de negocio::
 
+[#CU-14]
+==== CU-14: Consultar información de hotel
+
+ID:: CU-14
+Nombre:: Consultar información de hotel
+Autor:: Angel Jonathan Puch Hernández
+Fecha de actualización:: 03-oct-25
+Descripción:: Este caso de uso permite que el ADMINISTRADOR visualice la configuración completa de su hotel (datos generales, fotos, políticas y servicios) tal como está registrada en el sistema. El objetivo es verificar que la información sea correcta antes de que sea publicada para los huéspedes.
+Actor(es):: ADMINISTRADOR
+Disparador:: El ADMINISTRADOR selecciona la opción "Visualizar Hotel" en el menú principal.
+Precondiciones::
+PRE-01: El ADMINISTRADOR ha iniciado sesión correctamente y tiene un hotel asignado a su cuenta.
+Flujo Normal::
+. El Sistema consulta la información completa del hotel asociado al usuario en la base de datos. (Ver EX-01).
+. El Sistema despliega la ficha del hotel organizada por secciones (General, Ubicación, Fotos, Políticas).
+. El ADMINISTRADOR navega entre las pestañas para revisar la información registrada.
+. El ADMINISTRADOR confirma que los datos son actuales.
+. Termina CU.
+Flujos Alternos::
+FA 3.1: Vista Previa (Ver como Huésped)
+. El ADMINISTRADOR selecciona el botón "Vista Previa".
+. El Sistema genera una vista simulando cómo vería la información un cliente en la App/Web.
+. El ADMINISTRADOR valida la apariencia visual.
+. Regresa al paso 3 del flujo normal.
+Excepciones::
+EX-01: Sin conexión con la base de datos
+. El sistema muestra al ADMINISTRADOR el mensaje de error de conexión con la base de datos.
+. El ADMINISTRADOR cierra el mensaje.
+. Termina CU.
+Postcondiciones::
+Reglas de negocio::
+RN-01: Un Administrador solo puede consultar la información de los hoteles a los que tiene permisos explícitos (no puede ver hoteles de otra gerencia).
 [#CU-15]
 ==== CU-15: Actualizar información de hotel
 
@@ -676,27 +676,31 @@ ID:: CU-15
 Nombre:: Actualizar información de hotel
 Autor:: Angel Jonathan Puch Hernández
 Fecha de actualización:: 03-oct-25
-Descripción:: El administrador modifica los datos generales de un hotel previamente registrado en el sistema.
-Actor(es):: Administrador
-Disparador:: El Administrador selecciona la opción de editar un hotel existente.
+Descripción:: El ADMINISTRADOR modifica los datos descriptivos y de contacto de un hotel registrado. El objetivo es mantener actualizada la información que está asociada a un HOTEL correspondiente a un ADMINISTRADOR.
+Actor(es):: ADMINISTRADOR
+Disparador:: El ADMINISTRADOR selecciona la opción "Guardar Cambios" dentro del formulario de edición del hotel.
 Precondiciones::
-PR-01: El Administrador ha consultado previamente el hotel que desea modificar.
+PRE-01: El ADMINISTRADOR ha iniciado sesión y tiene permisos de edición sobre el hotel seleccionado.
 Flujo Normal::
-. El sistema presenta un formulario con la información actual del hotel cargada en los campos editables.
-. El administrador modifica los campos deseados y confirma los cambios.
-. El sistema valida los datos modificados, los guarda en la base de datos y muestra un mensaje de confirmación.
-. Termina CU
+. El sistema presenta un formulario con la información actual del HOTEL cargada en los campos editables.
+. El ADMINISTRADOR modifica los campos deseados y confirma los cambios.
+. El Sistema valida que los campos obligatorios (Nombre, Dirección) no estén vacíos y tengan el formato correcto. (Ver FA 3.1).
+. El Sistema guarda la actualización en la base de datos. (Ver EX-01).
+. El Sistema confirma al ADMINISTRADOR que los cambios fueron guardados exitosamente.
+. Termina CU.
 Flujos Alternos::
-FA 3.1 Datos inválidos o incompletos:
-. Si el sistema verifica si hay errores en la validación, notifica al Administrador resaltando los campos incorrectos.
-. Se regresa al paso 1 del flujo normal, manteniendo la información ya ingresada.
+FA 3.1: Datos inválidos o incompletos
+. Si el sistema verifica si hay errores en la validación, notifica al ADMINISTRADOR resaltando los campos incorrectos.
+. Se regresa al paso 1 del flujo normal.
 Excepciones::
-EX-01 Sin conexión con la base de datos
-. El sistema notifica al usuario que no hay conexión con la base de datos
-. Termina CU
+EX-01: Sin conexión con la base de datos
+. El sistema muestra al ADMINISTRADOR el mensaje de error de conexión con la base de datos.
+. El ADMINISTRADOR cierra el mensaje.
+. Termina CU.
 Postcondiciones::
-POST-01 La información del hotel ha sido actualizada en la base de datos.
+POST-01: La información pública del HOTEL refleja los cambios realizados inmediatamente.
 Reglas de negocio::
+RN-01: No se puede cambiar el ID único del hotel una vez creado.
 
 [#CU-16]
 ==== CU-16: Desactivar hotel
