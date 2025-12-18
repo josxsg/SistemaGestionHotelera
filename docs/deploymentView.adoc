@@ -1,10 +1,9 @@
-[[deployment-view]]
-= Vista de Despliegue
+==== Vista de Despliegue
 
-== Topología de Infraestructura
+===== Topología de Infraestructura
 
 La Vista de Despliegue describe el mapeo de los componentes de software sobre la infraestructura de hardware y entornos de ejecución virtualizados. Se ha seleccionado una topología de **N-Capas distribuida**, diseñada para soportar los requisitos de Alta Disponibilidad (**ASR-DA-01**) y Escalabilidad Elástica.
-image::img/deploymentDiagram.png[align="center", title="DiagramaDespliegue: Infraestructura N-Capas en AWS/Cloud"]
+image::img/deploymentDiagram/DiagramaDespliegue.png[align="center", title="DiagramaDespliegue: Infraestructura N-Capas en AWS/Cloud"]
 
 El diagrama de despliegue ilustra la siguiente distribución de nodos:
 
@@ -26,23 +25,23 @@ El diagrama de despliegue ilustra la siguiente distribución de nodos:
         * *Réplicas de Lectura:* Sirven las consultas masivas de disponibilidad (CQRS), liberando al maestro de carga de lectura.
     * **Caché Distribuida (Redis):** Almacena sesiones de usuario y datos de acceso frecuente (catálogos) para reducir latencia.
 
-== Justificación de Decisiones de Infraestructura
+===== Justificación de Decisiones de Infraestructura
 
-=== Escalabilidad y Rendimiento
+====== Escalabilidad y Rendimiento
 La separación física entre los servidores de aplicación y la base de datos permite escalar cada capa de forma independiente. Ante un evento de *Flash Crowd* (pico de tráfico), el orquestador puede instanciar dinámicamente más réplicas de los contenedores de aplicación (Escalamiento Horizontal) sin detener el servicio. El uso de réplicas de lectura en la base de datos aborda directamente el driver de rendimiento de búsquedas < 500ms.
 
-=== Disponibilidad y Resiliencia
+====== Disponibilidad y Resiliencia
 Para cumplir con el **ASR-DA-01** (Disponibilidad), se aplica la táctica de **Redundancia Activa**:
 * Todos los componentes críticos (Web Servers, DB) están duplicados.
 * Si un nodo de aplicación falla, el Load Balancer detecta la falta de respuesta (*Health Check*) y redirige el tráfico a los nodos sanos restantes.
 * Si el nodo maestro de base de datos falla, se activa un proceso de *Failover* automático promoviendo una réplica a maestro.
 
-=== Seguridad y PCI-DSS
+====== Seguridad y PCI-DSS
 Para satisfacer la restricción **CON-05**, la infraestructura segrega las redes:
 * La base de datos reside en una subred privada, inaccesible desde internet. Solo los servidores de aplicación pueden comunicarse con ella.
 * No se almacenan datos de tarjetas. La comunicación con la Pasarela de Pagos Externa se realiza directamente desde el cliente o mediante un túnel seguro desde el backend, sin persistir datos sensibles (PAN/CVV) en discos locales.
 
-== Mapeo de Componentes a Nodos
+===== Mapeo de Componentes a Nodos
 |===
 | Nodo / Contenedor | Componentes Desplegados | Requisitos de Hardware (Estimado)
 

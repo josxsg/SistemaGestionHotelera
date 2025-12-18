@@ -1,140 +1,343 @@
-=== 2. Vista de Interacción de Componentes (Diagramas de Comunicación)
+==== Interacción de Componentes (Diagramas de Comunicación)
 
 Esta sección detalla la fase de **Interacción** del proceso CBSE. El objetivo de estos diagramas de comunicación es validar que las especificaciones de componentes (interfaces, pre/postcondiciones) definidas en la sección anterior son suficientes para satisfacer las colaboraciones requeridas por los Casos de Uso (CU).
 
-Cada diagrama modela el **Flujo Normal** del caso de uso, demostrando cómo las instancias de los componentes (ej. `:CmpGestionReservas`) colaboran para cumplir con los objetivos de negocio y las postcondiciones, asegurando la trazabilidad con los drivers arquitectónicos.
+===== CU-01: Consultar disponibilidad de habitaciones
 
-==== 2.1. CU-01: Consultar disponibilidad de habitaciones
-image::img/CommunicationDiagrams/CommunicationCU1.png[alt="Diagrama de Comunicación CU-01: Consultar disponibilidad de habitaciones"]
-
----
-==== 2.2. CU-02: Reservar una habitación
-image::img/CommunicationDiagrams/CommunicationCU2.png[alt="Diagrama de Comunicación CU-02: Reservar una habitación"]
+====== Consultar Disponibilidad
+image::img/CommunicationDiagrams/CU-01/ConsultarDisponibilidad.png[alt="Diagrama de Comunicación: Consultar Disponibilidad"]
 
 ---
-==== 2.3. CU-03: Realizar el pago de la reservación
-image::img/CommunicationDiagrams/CommunicationCU3.png[alt="Diagrama de Comunicación CU-03: Realizar el pago de la reservación"]
+
+===== CU-02: Reservar una habitación
+
+====== Validar Datos Huesped
+image::img/CommunicationDiagrams/CU-02/ValidarDatosHuesped.png[alt="Diagrama de Comunicación: Validar Datos Huesped"]
 
 ---
-==== 2.4. CU-04: Cancelar una reservación
-image::img/CommunicationDiagrams/CommunicationCU4.png[alt="Diagrama de Comunicación CU-04: Cancelar una reservación"]
+====== Congelar Precio
+image::img/CommunicationDiagrams/CU-02/CongelarPrecio.png[alt="Diagrama de Comunicación: Congelar Precio"]
 
 ---
-==== 2.5. CU-05: Crear cuenta de huésped
-image::img/CommunicationDiagrams/CommunicationCU5.jpg[alt="Diagrama de Comunicación CU-05: Crear cuenta de huésped"]
+====== Bloquear Habitacion
+image::img/CommunicationDiagrams/CU-02/BloquearHabitacion.png[alt="Diagrama de Comunicación: Bloquear Habitacion"]
 
 ---
-==== 2.6. CU-06: Consultar mis reservaciones
-image::img/CommunicationDiagrams/CommunicationCU6.jpg[alt="Diagrama de Comunicación CU-06: Consultar mis reservaciones"]
+
+===== CU-03: Realizar el pago de la reservación
+
+====== Solicitar Cobro
+image::img/CommunicationDiagrams/CU-03/SolicitarCobro.png[alt="Diagrama de Comunicación: Solicitar Cobro"]
 
 ---
-==== 2.7. CU-07: Registrar salida (Check-out)
-image::img/CommunicationDiagrams/CommunicationCU7.jpg[alt="Diagrama de Comunicación CU-07: Registrar salida (Check-out)"]
+====== Proteger Datos
+image::img/CommunicationDiagrams/CU-03/ProtegerDatos.png[alt="Diagrama de Comunicación: Proteger Datos"]
 
 ---
-==== 2.8. CU-08: Registrar llegada (check-in)
-image::img/CommunicationDiagrams/CommunicationCU8.jpg[alt="Diagrama de Comunicación CU-08: Registrar llegada (check-in)"]
+====== Finalizar Pago
+image::img/CommunicationDiagrams/CU-03/FinalizarPago.png[alt="Diagrama de Comunicación: Finalizar Pago"]
 
 ---
-==== 2.9. CU-09: Cambiar de habitación a un huésped
-image::img/CommunicationDiagrams/CommunicationCU9.jpg[alt="Diagrama de Comunicación CU-09: Cambiar de habitación a un huésped"]
+
+===== CU-04: Cancelar una reservación
+
+====== Solicitar Cancelacion
+image::img/CommunicationDiagrams/CU-04/SolicitarCancelacion.png[alt="Diagrama de Comunicación: Solicitar Cancelacion"]
 
 ---
-==== 2.10. CU-10: Registrar consumo o servicio
-image::img/CommunicationDiagrams/CommunicationCU10.jpg[alt="Diagrama de Comunicación CU-10: Registrar consumo o servicio"]
+====== Procesar Reembolso
+image::img/CommunicationDiagrams/CU-04/ProcesarReembolso.png[alt="Diagrama de Comunicación: Procesar Reembolso"]
 
 ---
-==== 2.11. CU-11: Buscar reserva de huésped
-image::img/CommunicationDiagrams/CommunicationCU11.jpg[alt="Diagrama de Comunicación CU-11: Buscar reserva de huésped"]
+====== Cancelar Habitaciones
+image::img/CommunicationDiagrams/CU-04/CancelarHabitaciones.png[alt="Diagrama de Comunicación: Cancelar Habitaciones"]
 
 ---
-==== 2.12. CU-12: Consultar estado de habitación
-image::img/CommunicationDiagrams/CommunicationCU12.jpg[alt="Diagrama de Comunicación CU-12: Consultar estado de habitación"]
+
+===== CU-05: Crear cuenta de huésped
+
+====== Validar Huesped
+image::img/CommunicationDiagrams/CU-05/ValidarHuesped.png[alt="Diagrama de Comunicación: Validar Huesped"]
 
 ---
-==== 2.13. CU-13: Registrar nuevo hotel
-image::img/CommunicationDiagrams/CommunicationCU13.jpg[alt="Diagrama de Comunicación CU-13: Registrar nuevo hotel"]
+====== Crear Cuenta Huesped
+image::img/CommunicationDiagrams/CU-05/CrearCuentaHuesped.png[alt="Diagrama de Comunicación: Crear Cuenta Huesped"]
 
 ---
-==== 2.14. CU-14: Consultar información de hotel
-image::img/CommunicationDiagrams/CommunicationCU14.jpg[alt="Diagrama de Comunicación CU-14: Consultar información de hotel"]
+
+===== CU-06: Consultar mis reservaciones
+
+====== Consultar Reservas
+image::img/CommunicationDiagrams/CU-06/ConsultarReservas.png[alt="Diagrama de Comunicación: Consultar Reservas"]
 
 ---
-==== 2.15. CU-15: Actualizar información de hotel
-image::img/CommunicationDiagrams/CommunicationCU15.jpg[alt="Diagrama de Comunicación CU-15: Actualizar información de hotel"]
+
+===== CU-07: Registrar salida (Check-out)
+
+====== Calcular Consumos
+image::img/CommunicationDiagrams/CU-07/CalcularConsumos.png[alt="Diagrama de Comunicación: Calcular Consumos"]
 
 ---
-==== 2.16. CU-16: Desactivar hotel
-image::img/CommunicationDiagrams/CommunicationCU16.jpg[alt="Diagrama de Comunicación CU-16: Desactivar hotel"]
+====== Finalizar Estancia
+image::img/CommunicationDiagrams/CU-07/FinalizarEstancia.png[alt="Diagrama de Comunicación: Finalizar Estancia"]
 
 ---
-==== 2.17. CU-17: Registrar tipo de habitación
-image::img/CommunicationDiagrams/CommunicationCU17.jpg[alt="Diagrama de Comunicación CU-17: Registrar tipo de habitación"]
+
+===== CU-08: Registrar llegada (check-in)
+
+====== Validar Llegada
+image::img/CommunicationDiagrams/CU-08/ValidarLlegada.png[alt="Diagrama de Comunicación: Validar Llegada"]
 
 ---
-==== 2.18. CU-18: Consultar tipos de habitación
-image::img/CommunicationDiagrams/CommunicationCU18.jpg[alt="Diagrama de Comunicación CU-18: Consultar tipos de habitación"]
+====== Registrar Llegada
+image::img/CommunicationDiagrams/CU-08/RegistrarLlegada.png[alt="Diagrama de Comunicación: Registrar Llegada"]
 
 ---
-==== 2.19. CU-19: Actualizar tipo de habitación
-image::img/CommunicationDiagrams/CommunicationCU19.jpg[alt="Diagrama de Comunicación CU-19: Actualizar tipo de habitación"]
+
+===== CU-09: Cambiar de habitación a un huésped
+
+====== Cambiar Habitacion
+image::img/CommunicationDiagrams/CU-09/CambiarHabitacion.png[alt="Diagrama de Comunicación: Cambiar Habitacion"]
 
 ---
-==== 2.20. CU-20: Desactivar tipo de habitación
-image::img/CommunicationDiagrams/CommunicationCU20.jpg[alt="Diagrama de Comunicación CU-20: Desactivar tipo de habitación"]
+
+===== CU-10: Registrar consumo o servicio
+
+====== Registrar Consumo
+image::img/CommunicationDiagrams/CU-10/RegistrarConsumo.png[alt="Diagrama de Comunicación: Registrar Consumo"]
 
 ---
-==== 2.21. CU-21: Registrar habitación
-image::img/CommunicationDiagrams/CommunicationCU21.jpg[alt="Diagrama de Comunicación CU-21: Registrar habitación"]
+
+===== CU-11: Buscar reserva de huésped
+
+====== Consultar Reservas De Huesped
+image::img/CommunicationDiagrams/CU-11/ConsultarReservasDeHuesped.png[alt="Diagrama de Comunicación: Consultar Reservas De Huesped"]
 
 ---
-==== 2.22. CU-22: Consultar estado de habitación (Admin)
-image::img/CommunicationDiagrams/CommunicationCU22.jpg[alt="Diagrama de Comunicación CU-22: Consultar estado de habitación (Admin)"]
+
+===== CU-12: Consultar estado de habitación
+
+====== Obtener Estado Habitacion
+image::img/CommunicationDiagrams/CU-12/ObtenerEstadoHabitacion.png[alt="Diagrama de Comunicación: Obtener Estado Habitacion"]
 
 ---
-==== 2.23. CU-23: Actualizar estado de habitación
-image::img/CommunicationDiagrams/CommunicationCU23.jpg[alt="Diagrama de Comunicación CU-23: Actualizar estado de habitación"]
+
+===== CU-13: Registrar nuevo hotel
+
+====== Registrar Hotel
+image::img/CommunicationDiagrams/CU-13/RegistrarHotel.png[alt="Diagrama de Comunicación: Registrar Hotel"]
 
 ---
-==== 2.24. CU-24: Desactivar habitación
-image::img/CommunicationDiagrams/CommunicationCU24.jpg[alt="Diagrama de Comunicación CU-24: Desactivar habitación"]
+
+===== CU-14: Consultar información de hotel
+
+====== Consultar Hotel
+image::img/CommunicationDiagrams/CU-14/ConsultarHotel.png[alt="Diagrama de Comunicación: Consultar Hotel"]
 
 ---
-==== 2.25. CU-25: Registrar cuenta de personal
-image::img/CommunicationDiagrams/CommunicationCU25.jpg[alt="Diagrama de Comunicación CU-25: Registrar cuenta de personal"]
+
+===== CU-15: Actualizar información de hotel
+
+====== Obtener Datos Hotel
+image::img/CommunicationDiagrams/CU-15/ObtenerDatosHotel.png[alt="Diagrama de Comunicación: Obtener Datos Hotel"]
 
 ---
-==== 2.26. CU-26: Consultar cuentas de personal
-image::img/CommunicationDiagrams/CommunicationCU26.jpg[alt="Diagrama de Comunicación CU-26: Consultar cuentas de personal"]
+====== Actualizar Hotel
+image::img/CommunicationDiagrams/CU-15/ActualizarHotel.png[alt="Diagrama de Comunicación: Actualizar Hotel"]
 
 ---
-==== 2.27. CU-27: Actualizar cuenta de personal
-image::img/CommunicationDiagrams/CommunicationCU27.jpg[alt="Diagrama de Comunicación CU-27: Actualizar cuenta de personal"]
+
+===== CU-16: Desactivar hotel
+
+====== Validar Desactivacion Hotel
+image::img/CommunicationDiagrams/CU-16/ValidarDesactivacionHotel.png[alt="Diagrama de Comunicación: Validar Desactivacion Hotel"]
 
 ---
-==== 2.28. CU-28: Dar de baja cuenta personal
-image::img/CommunicationDiagrams/CommunicationCU28.jpg[alt="Diagrama de Comunicación CU-28: Dar de baja cuenta personal"]
+====== Desactivar Hotel
+image::img/CommunicationDiagrams/CU-16/DesactivarHotel.png[alt="Diagrama de Comunicación: Desactivar Hotel"]
 
 ---
-==== 2.29. CU-29: Gestionar tarifa base
-image::img/CommunicationDiagrams/CommunicationCU29.jpg[alt="Diagrama de Comunicación CU-29: Gestionar tarifa base"]
+
+===== CU-17: Registrar tipo de habitación
+
+====== Validar Nuevo Resgitro
+image::img/CommunicationDiagrams/CU-17/ValidarNuevoResgitro.png[alt="Diagrama de Comunicación: Validar Nuevo Resgitro"]
 
 ---
-==== 2.30. CU-30: Gestionar precio por día
-image::img/CommunicationDiagrams/CommunicationCU30.jpg[alt="Diagrama de Comunicación CU-30: Gestionar precio por día"]
+====== Crear Tipo Habitacion
+image::img/CommunicationDiagrams/CU-17/CrearTipoHabitacion.png[alt="Diagrama de Comunicación: Crear Tipo Habitacion"]
 
 ---
-==== 2.31. CU-31: Consultar historial de tarifas
-image::img/CommunicationDiagrams/CommunicationCU31.jpg[alt="Diagrama de Comunicación CU-31: Consultar historial de tarifas"]
+
+===== CU-18: Consultar tipos de habitación
+
+====== Buscar Tipos Habitacion
+image::img/CommunicationDiagrams/CU-18/BuscarTiposHabitacion.png[alt="Diagrama de Comunicación: Buscar Tipos Habitacion"]
 
 ---
-==== 2.32. CU-32: Gestionar política de overbooking
-image::img/CommunicationDiagrams/CommunicationCU32.jpg[alt="Diagrama de Comunicación CU-32: Gestionar política de overbooking"]
+
+===== CU-19: Actualizar tipo de habitación
+
+====== Obtener Datos Tipo Habitacion
+image::img/CommunicationDiagrams/CU-19/ObtenerDatosTipoHabitacion.png[alt="Diagrama de Comunicación: Obtener Datos Tipo Habitacion"]
 
 ---
-==== 2.33. CU-33: Gestionar política de cancelación
-image::img/CommunicationDiagrams/CommunicationCU33.jpg[alt="Diagrama de Comunicación CU-33: Gestionar política de cancelación"]
+====== Actualizar Tipo Habitacion
+image::img/CommunicationDiagrams/CU-19/ActualizarTipoHabitacion.png[alt="Diagrama de Comunicación: Obtener Actualizar Tipo Habitacion"]
 
 ---
-==== 2.34. CU-34: Rastrear una transacción
-image::img/CommunicationDiagrams/CommunicationCU34.jpg[alt="Diagrama de Comunicación CU-34: Rastrear una transacción"]
+
+===== CU-20: Desactivar tipo de habitación
+
+====== Validar Dependencias Tipo Habitacion
+image::img/CommunicationDiagrams/CU-20/ValidarDependenciasTipoHabitacion.png[alt="Diagrama de Comunicación: Validar Dependencias Tipo Habitacion"]
+
+---
+====== Desactivar Tipo Habitacion
+image::img/CommunicationDiagrams/CU-20/DesactivarTipoHabitacion.png[alt="Diagrama de Comunicación: Desactivar Tipo Habitacion"]
+
+---
+
+===== CU-21: Registrar habitación
+
+====== Validar Unicidad Numero Habitacion
+image::img/CommunicationDiagrams/CU-21/ValidarUnicidadNumeroHabitacion.png[alt="Diagrama de Comunicación: Validar Unicidad Numero Habitacion"]
+
+---
+====== Registrar Habitacion
+image::img/CommunicationDiagrams/CU-21/RegistrarHabitacion.png[alt="Diagrama de Comunicación: Registrar Habitacion"]
+
+---
+
+===== CU-22: Consultar estado de habitación (Admin)
+
+====== Obtener Estado Habitacion
+image::img/CommunicationDiagrams/CU-22/ObtenerEstadoHabitacion.png[alt="Diagrama de Comunicación: Obtener Estado Habitacion"]
+
+---
+
+===== CU-23: Actualizar estado de habitación
+
+====== Obtener Detalle Habitacion
+image::img/CommunicationDiagrams/CU-23/ObtenerDetalleHabitacion.png[alt="Diagrama de Comunicación: Obtener Detalle Habitacion"]
+
+---
+====== Cambiar Estado Habitacion
+image::img/CommunicationDiagrams/CU-23/CambiarEstadoHabitacion.png[alt="Diagrama de Comunicación: Cambiar Estado Habitacion"]
+
+---
+
+===== CU-24: Desactivar habitación
+
+====== Validar Baja Habitacion
+image::img/CommunicationDiagrams/CU-24/ValidarBajaHabitacion.png[alt="Diagrama de Comunicación: Validar Baja Habitacion"]
+
+---
+====== Desactivar Habitacion
+image::img/CommunicationDiagrams/CU-24/DesactivarHabitacion.png[alt="Diagrama de Comunicación: Desactivar Habitacion"]
+
+---
+
+===== CU-25: Registrar cuenta de personal
+
+====== Validar Disponibilidad Correo
+image::img/CommunicationDiagrams/CU-25/ValidarDisponibilidadCorreo.png[alt="Diagrama de Comunicación: Validar Disponibilidad Correo"]
+
+---
+====== Registrar Cuenta Personal
+image::img/CommunicationDiagrams/CU-25/RegistrarCuentaPersonal.png[alt="Diagrama de Comunicación: Registrar Cuenta Personal"]
+
+---
+
+===== CU-26: Consultar cuentas de personal
+
+====== Obtener Detalle Personal
+image::img/CommunicationDiagrams/CU-26/ObtenerDetallePersonal.png[alt="Diagrama de Comunicación: Obtener Detalle Personal"]
+
+---
+====== Buscar Personal
+image::img/CommunicationDiagrams/CU-26/BuscarPersonal.png[alt="Diagrama de Comunicación: Buscar Personal"]
+
+---
+
+===== CU-27: Actualizar cuenta de personal
+
+====== Iniciar Edicion Cuenta
+image::img/CommunicationDiagrams/CU-27/IniciarEdicionCuenta.png[alt="Diagrama de Comunicación: Iniciar Edicion Cuenta"]
+
+---
+====== Actualizar Cuenta Personal
+image::img/CommunicationDiagrams/CU-27/ActualizarCuentaPersonal.png[alt="Diagrama de Comunicación: Actualizar Cuenta Personal"]
+
+---
+
+===== CU-28: Dar de baja cuenta personal
+
+====== Validar Desactivacion
+image::img/CommunicationDiagrams/CU-28/ValidarDesactivacion.png[alt="Diagrama de Comunicación: Validar Desactivacion"]
+
+---
+====== Desactivar Cuenta
+image::img/CommunicationDiagrams/CU-28/DesactivarCuenta.png[alt="Diagrama de Comunicación: Desactivar Cuenta"]
+
+---
+
+===== CU-29: Gestionar tarifa base
+
+====== Obtener Tarifas Base
+image::img/CommunicationDiagrams/CU-29/ObtenerTarifasBase.png[alt="Diagrama de Comunicación: Obtener Tarifas Base"]
+
+---
+====== Actualizar Tarifa Base
+image::img/CommunicationDiagrams/CU-29/ActualizarTarifaBase.png[alt="Diagrama de Comunicación: Actualizar Tarifa Base"]
+
+---
+
+===== CU-30: Gestionar precio por día
+
+====== Restaurar Tarifa Base
+image::img/CommunicationDiagrams/CU-30/RestaurarTarifaBase.png[alt="Diagrama de Comunicación: Restaurar Tarifa Base"]
+
+---
+====== Obtener Calendario Tarifas
+image::img/CommunicationDiagrams/CU-30/ObtenerCalendarioTarifas.png[alt="Diagrama de Comunicación: Obtener Calendario Tarifas"]
+
+---
+====== Asignar Tarifa Especial
+image::img/CommunicationDiagrams/CU-30/AsignarTarifaEspecial.png[alt="Diagrama de Comunicación: Asignar Tarifa Especial"]
+
+---
+
+===== CU-31: Consultar historial de tarifas
+
+====== Consultar Historial Tarifas
+image::img/CommunicationDiagrams/CU-31/ConsultarHistorialTarifas.png[alt="Diagrama de Comunicación: Consultar Historial Tarifas"]
+
+---
+
+===== CU-32: Gestionar política de overbooking
+
+====== Obtener Overbooking
+image::img/CommunicationDiagrams/CU-32/RestaurarTarifaBase.png[alt="Diagrama de Comunicación: Obtener Overbooking"]
+
+---
+====== Actualizar Overbooking
+image::img/CommunicationDiagrams/CU-32/ActualizarOverbooking.png[alt="Diagrama de Comunicación: Actualizar Overbooking"]
+
+---
+
+===== CU-33: Gestionar política de cancelación
+
+====== Obtener Politicas Cancelacion
+image::img/CommunicationDiagrams/CU-33/ObtenerPoliticasCancelacion.png[alt="Diagrama de Comunicación: Obtener Politicas Cancelacion"]
+
+---
+====== Actualizar Politica Cancelacion
+image::img/CommunicationDiagrams/CU-33/ActualizarPoliticaCancelacion.png[alt="Diagrama de Comunicación: Actualizar Politica Cancelacion"]
+
+---
+
+===== CU-34: Rastrear una transacción
+
+====== Obtener Trazabilidad
+image::img/CommunicationDiagrams/CU-34/ObtenerTrazabilidad.png[alt="Diagrama de Comunicación: Obtener Trazabilidad"]

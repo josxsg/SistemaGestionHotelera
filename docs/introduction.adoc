@@ -34,11 +34,11 @@
 | 1.2 | 18/10/25 | Aldo Antonio, José Luis, Ángel Jonathan | Inclusión de Glosario Técnico, Restricciones y Modelo Conceptual.
 |===
 
-== 1. Contexto y Alcance del Sistema
+== Contexto y Alcance del Sistema
 
 Este apartado establece el marco del problema de negocio, la visión estratégica y los límites del nuevo Sistema de Gestión Hotelera. Su propósito es definir qué se va a construir, para quién y por qué, creando un lenguaje común y un entendimiento compartido entre todos los interesados del proyecto.
 
-=== 1.1 Visión del Sistema
+=== Visión del Sistema
 
 Para la administración de la cadena hotelera, el personal operativo y los huéspedes, quienes hoy enfrentan inconsistencias, errores y falta de control debido a una infraestructura tecnológica fragmentada, el nuevo Sistema de Gestión y Reservaciones Hotelero surge como una plataforma centralizada e integral que transforma por completo la operación y el manejo de inventario, tarifas y reservas.
 
@@ -54,11 +54,11 @@ Además, la arquitectura del sistema está orientada a la trazabilidad y el cont
 
 En conclusión, el nuevo Sistema de Gestión Hotelera no solo atiende los principales retos actuales, sino que también prepara a la cadena para un crecimiento sólido y sostenible. Su implementación impulsa la eficiencia operativa, mejora la experiencia del huésped y fortalece la posición competitiva en el mercado hotelero.
 
-=== 1.2 Alcance
+=== Alcance
 
 El proyecto de Sistema de Reservaciones consiste en reemplazar la infraestructura local actual por una plataforma centralizada y robusta, capaz de soportar el crecimiento de la cadena (más de 5,000 hoteles y 1,000,000 de habitaciones).
 
-==== 1.2.1 Funcionalidades Dentro del Alcance (In-Scope)
+==== Funcionalidades Dentro del Alcance (In-Scope)
 
 El sistema será responsable de gestionar el ciclo de vida completo de las reservaciones y estancias de los huéspedes.
 El alcance general incluye:
@@ -84,7 +84,7 @@ El alcance general incluye:
 * *Módulo de Auditoría:*
 ** Generación de registros (*logs*) detallados para cada transacción (reserva, pago, cancelación), permitiendo una trazabilidad completa de las operaciones (*CU-34*).
 
-==== 1.2.2 Funcionalidades Fuera del Alcance (Out-of-Scope)
+==== Funcionalidades Fuera del Alcance (Out-of-Scope)
 
 Las siguientes funcionalidades se excluyen explícitamente del alcance inicial y se consideran para futuras versiones con el fin de mantener el enfoque del proyecto:
 
@@ -93,7 +93,7 @@ Las siguientes funcionalidades se excluyen explícitamente del alcance inicial y
 * *Funcionalidades operativas extendidas:* Tareas como la programación de personal de limpieza (*housekeeping*), la gestión de mantenimiento o la facturación electrónica no forman parte del alcance actual.
 * *Pasarela de pagos:* El sistema se integrará con una pasarela de pagos externa. El diseño se centrará en una correcta integración, pero no en la construcción de la lógica de procesamiento de pagos.
 
-=== 1.3Audiencia del Documento
+=== Audiencia del Documento
 
 Este Documento de Arquitectura de Software tiene múltiples audiencias (stakeholders) tanto a nivel de negocio como técnico.
 
@@ -125,7 +125,7 @@ Los principales actores que interactúan directamente con el sistema son:
 * **Administración (Cadena/Hotel):** Responsable de la gestión del catálogo de hoteles, precios por día y políticas de overbooking.
 * **Auditoría (Sistema):** Actor que consume los registros del sistema para asegurar la trazabilidad de todas las operaciones.
 
-=== 1.4 Glosario
+=== Glosario
 Definiciones precisas de términos utilizados en este documento para evitar ambigüedades.
 
 [options="header", cols="1,4"]

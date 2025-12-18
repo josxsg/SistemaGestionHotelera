@@ -1,13 +1,14 @@
+=== Vista de Implementación
 
-== Vista de Componentes (CBSD)
+==== Diagrama de especificación de componentes (v2 Hito 4)
 
 Esta vista define las especificaciones de los componentes de software (<<comp spec>>) que encapsulan la lógica de negocio del sistema, siguiendo el enfoque de Cheesman & Daniels. Esta iteración de diseño refina la lógica de negocio en componentes más cohesivos para satisfacer los ASRs de rendimiento y confiabilidad.
 
-=== 1. Especificación de Componentes
+===== Especificación de Componentes
 
 A continuación, se detalla la especificación (<<comp spec>>) de cada componente, mostrando sus interfaces provistas y requeridas, junto con su justificación arquitectónica.
 
-==== 1.1. Componente: ConsultaDisponibilidad
+====== Componente: ConsultaDisponibilidad
 
 * **Descripción:** Componente optimizado para lectura, responsable de manejar todas las consultas de alto volumen sobre disponibilidad de habitaciones, tarifas y tipos de habitación.
 * **Justificación (Drivers):**
@@ -19,7 +20,7 @@ A continuación, se detalla la especificación (<<comp spec>>) de cada component
 image::img/ComponentDiagrams/ComponentDiagramConsultaDisponibilidad.png[alt="Especificación del Componente ConsultaDisponibilidad"]
 
 ---
-==== 1.2. Componente: GestionReservas
+====== Componente: GestionReservas
 
 * **Descripción:** Componente transaccional principal. Es responsable de la lógica de negocio de crear, confirmar (con pago), modificar y cancelar reservaciones.
 * **Justificación (Drivers):**
@@ -31,7 +32,7 @@ image::img/ComponentDiagrams/ComponentDiagramConsultaDisponibilidad.png[alt="Esp
 image::img/ComponentDiagrams/ComponentDiagramGestionReservas.png[alt="Especificación del Componente GestionReservas"]
 
 ---
-==== 1.3. Componente: Pagos
+====== Componente: Pagos
 
 * **Descripción:** Encapsula toda la lógica de procesamiento de pagos y reembolsos, abstrayendo la pasarela de pago externa.
 * **Justificación (Drivers):**
@@ -43,7 +44,7 @@ image::img/ComponentDiagrams/ComponentDiagramGestionReservas.png[alt="Especifica
 image::img/ComponentDiagrams/ComponentDiagramPago.png[alt="Especificación del Componente Pagos"]
 
 ---
-==== 1.4. Componente: GestionEstancias
+====== Componente: GestionEstancias
 
 * **Descripción:** Maneja el ciclo de vida del huésped en el hotel (check-in, check-out, cambio de habitación) y la gestión del inventario físico.
 * **Justificación (Drivers):**
@@ -55,7 +56,7 @@ image::img/ComponentDiagrams/ComponentDiagramPago.png[alt="Especificación del C
 image::img/ComponentDiagrams/ComponentDiagramGestionEstancias.png[alt="Especificación del Componente GestionEstancias"]
 
 ---
-==== 1.5. Componente: AdministracionCentral
+====== Componente: AdministracionCentral
 
 * **Descripción:** Actúa como el "source of truth" para todos los datos maestros (hoteles, tipos de habitación, catálogos) y políticas de negocio (tarifas, overbooking).
 * **Justificación (Drivers):**
@@ -67,7 +68,7 @@ image::img/ComponentDiagrams/ComponentDiagramGestionEstancias.png[alt="Especific
 image::img/ComponentDiagrams/ComponentDiagramAdministracionCentral.png[alt="Especificación del Componente AdministracionCentral"]
 
 ---
-==== 1.6. Componente: Autenticacion
+====== Componente: Autenticacion
 
 * **Descripción:** Componente transversal dedicado a la identidad, autenticación (login) y autorización (roles) de todos los actores del sistema.
 * **Justificación (Drivers):**
@@ -77,7 +78,7 @@ image::img/ComponentDiagrams/ComponentDiagramAdministracionCentral.png[alt="Espe
 image::img/ComponentDiagrams/ComponentDiagramAutenticacion.png[alt="Especificación del Componente Autenticacion"]
 
 ---
-==== 1.7. Componente: Notificaciones
+====== Componente: Notificaciones
 
 * **Descripción:** Componente desacoplado para manejar todas las comunicaciones salientes (email, SMS) con los huéspedes.
 * **Justificación (Drivers):**
@@ -88,7 +89,7 @@ image::img/ComponentDiagrams/ComponentDiagramAutenticacion.png[alt="Especificaci
 image::img/ComponentDiagrams/ComponentDiagramNotificaciones.png[alt="Especificación del Componente Notificaciones"]
 
 ---
-==== 1.8. Componente: Auditoria
+====== Componente: Auditoria
 
 * **Descripción:** Componente transversal que provee una interfaz para el registro de eventos críticos de negocio y seguridad.
 * **Justificación (Drivers):**
@@ -99,15 +100,15 @@ image::img/ComponentDiagrams/ComponentDiagramNotificaciones.png[alt="Especificac
 
 image::img/ComponentDiagrams/ComponentDiagramAuditoria.png[alt="Especificación del Componente Auditoria"]
 
-=== 2. Invariantes de Especificación de Componente
+===== Invariantes de Especificación de Componente
 
 Las siguientes invariantes son reglas de consistencia interna que cada componente debe garantizar en todo momento. Complementan los contratos de interfaz (pre/post-condiciones) y son fundamentales para la robustez del sistema y el cumplimiento de ASRs como ASR-Consistencia y ASR-CF-01.
 
-==== 2.1. Componente: ConsultaDisponibilidad
+====== Componente: ConsultaDisponibilidad
 
 INV-CD-01: (Si se usa caché para ASR-RE-01) La caché de disponibilidad nunca debe tener una fecha de expiración (TTL) mayor al tiempo de actualización del inventario. El estado "leído" (consultado) nunca debe ser más reciente que el estado "escrito" (confirmado).
 
-==== 2.2. Componente: GestionReservas
+====== Componente: GestionReservas
 
 INV-GR-01: Una Reservacion en estado "Confirmada" DEBE tener exactamente un Pago asociado en estado "Aprobado" (garantiza ASR-Consistencia financiera).
 
@@ -115,7 +116,7 @@ INV-GR-02: Una Reservacion en estado "Confirmada" DEBE tener una entrada de inve
 
 INV-GR-03: Una Reservacion en estado "Cancelada" NO DEBE tener una entrada de inventario que descuente la disponibilidad (el inventario debe estar liberado).
 
-==== 2.3. Componente: Pagos
+====== Componente: Pagos
 
 INV-PA-01: Un idReferencia (usado en IPagos.procesarPago) solo puede estar asociado a un Pago. Esto garantiza la idempotencia y el cumplimiento de ASR-CF-02 (0 dobles cobros).
 
@@ -123,7 +124,7 @@ INV-PA-02: Un Reembolso (creado por IReembolsos) solo puede existir si está aso
 
 INV-PA-03: La suma de los montos de todos los Reembolso asociados a un Pago no puede ser mayor que el monto original del Pago.
 
-==== 2.4. Componente: GestionEstancias
+====== Componente: GestionEstancias
 
 INV-GE-01: Una Estancia en estado "Activa" DEBE estar asociada a una Reservacion en estado "Confirmada".
 
@@ -133,7 +134,7 @@ INV-GE-03: Una Habitacion (en IInventario) en estado "Ocupada" DEBE estar asocia
 
 INV-GE-04: Un Consumo (creado por IConsumos) solo puede asociarse a una Estancia en estado "Activa" (previene cargos a estancias ya finalizadas).
 
-==== 2.5. Componente: AdministracionCentral
+====== Componente: AdministracionCentral
 
 INV-AC-01: Una Habitacion (gestionada por IInventario) no puede existir si no está asociada a un TipoHabitacion y a un Hotel válidos (integridad referencial de catálogos).
 
@@ -143,16 +144,16 @@ INV-AC-03: Un Hotel (gestionado por ICatalogoHotel) es la raíz de la jerarquía
 
 INV-AC-04: Una cuenta de Personal (gestionada por IGestionPersonal) debe tener exactamente un Rol asignado.
 
-==== 2.6. Componente: Autenticacion
+====== Componente: Autenticacion
 
 INV-AU-01: Un Huesped y una cuenta de Personal no pueden compartir el mismo email (identificador único de usuario en el sistema).
 
 INV-AU-02: Un TokenSesion (generado por ISesionUsuario.login) debe estar asociado a un (y solo un) usuario activo (sea Huesped o Personal).
 
-==== 2.7. Componente: Notificaciones
+====== Componente: Notificaciones
 
 INV-NO-01: Un mensaje (Email o SMS) encolado por INotificacion debe intentar enviarse al menos N veces (ej. 3 veces) antes de ser marcado como "Fallido" (garantiza la entrega "at-least-once" o un registro de fallo).
 
-==== 2.8. Componente: Auditoria
+====== Componente: Auditoria
 
 INV-AD-01: Un RegistroAuditoria (creado por IAuditoria.registrarEvento) es inmutable. Una vez escrito, no puede ser modificado ni eliminado.

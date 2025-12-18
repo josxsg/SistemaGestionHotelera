@@ -1,5 +1,11 @@
-[[traceability-matrix]]
-= Matriz de Trazabilidad (Final Extendida – Hito 6)
+= Matriz de Trazabilidad
+:doctype: book
+:lang: es
+:encoding: utf-8
+:toclevels: 3
+:sectnums:
+
+== Matriz de Trazabilidad (Final Extendida – Hito 6)
 
 Esta matriz conecta exhaustivamente los impulsores arquitectónicos (Drivers), Restricciones (CON) y Preocupaciones (CRN) con las tácticas de diseño, decisiones arquitectónicas y los artefactos resultantes. Integra la cobertura funcional y los requisitos no funcionales de infraestructura y procesos.
 

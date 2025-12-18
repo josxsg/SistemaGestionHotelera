@@ -1,4 +1,13 @@
-== 4.1 Método de Diseño
+= Método de Diseño
+:doctype: book
+:lang: es
+:encoding: utf-8
+:toclevels: 3
+:sectnums:
+
+== Método de Diseño
+
+=== Método de Diseño
 
 El diseño de la arquitectura para el Sistema de Gestión Hotelera no fue un acto arbitrario, sino un proceso sistemático y racional enfocado en satisfacer las necesidades críticas del negocio. Para lograr esto, se implementó un enfoque metodológico dual:
 
@@ -7,11 +16,11 @@ El diseño de la arquitectura para el Sistema de Gestión Hotelera no fue un act
 
 Este documento explica cómo se aplicaron ambos métodos de manera secuencial e iterativa.
 
-=== 1. Attribute-Driven Design (ADD): Derivando la Arquitectura
+==== Attribute-Driven Design (ADD): Derivando la Arquitectura
 
 ADD es un método iterativo que enfoca el diseño en la satisfacción de los atributos de calidad. En lugar de comenzar con componentes, ADD arranca con los impulsores arquitectónicos priorizados.
 
-==== 1.1. Backlog de Impulsores (Drivers Arquitectónicos)
+===== Backlog de Impulsores (Drivers Arquitectónicos)
 
 El primer paso consistió en formalizar el backlog de impulsores, extraídos de los objetivos de negocio y los escenarios de atributos de calidad (QAS). Estos se priorizaron en función de su impacto crítico en el negocio:
 
@@ -26,11 +35,11 @@ El primer paso consistió en formalizar el backlog de impulsores, extraídos de 
 
 Este backlog fue la guía inquebrantable para cada decisión de diseño.
 
-==== 1.2. Iteraciones de Diseño y Decisiones Arquitectónicas (ADD)
+===== Iteraciones de Diseño y Decisiones Arquitectónicas (ADD)
 
 El diseño se abordó en iteraciones, cada una enfocada en satisfacer un conjunto de impulsores del backlog mediante tácticas y patrones específicos.
 
-===== Iteración 1: Abordando Confiabilidad y Trazabilidad
+====== Iteración 1: Abordando Confiabilidad y Trazabilidad
 
 *Objetivo de la Iteración:* Garantizar la integridad transaccional (evitar dobles reservas y dobles cobros) y establecer la base para la auditoría (CRN-5).
 
@@ -44,7 +53,7 @@ El diseño se abordó en iteraciones, cada una enfocada en satisfacer un conjunt
 
 *Criterio de "Suficiente":* Las tácticas de bloqueo e idempotencia están diseñadas para cumplir la meta de 0% de incidentes. El aislamiento del dominio permite pruebas unitarias de estas reglas críticas.
 
-===== Iteración 2: Abordando Disponibilidad y Rendimiento (Lectura)
+====== Iteración 2: Abordando Disponibilidad y Rendimiento (Lectura)
 
 *Objetivo de la Iteración:* Asegurar la operación 24/7 (DA-01) y optimizar el alto volumen de consultas de disponibilidad (300 QPS).
 
@@ -57,7 +66,7 @@ El diseño se abordó en iteraciones, cada una enfocada en satisfacer un conjunt
 
 *Criterio de "Suficiente":* La replicación y el failover están diseñados para cumplir el RTO de < 5 minutos. CQRS y el caching están dimensionados para manejar 300 QPS con latencia P95 < 500ms.
 
-===== Iteración 3: Abordando Rendimiento (Escritura) y Usabilidad
+====== Iteración 3: Abordando Rendimiento (Escritura) y Usabilidad
 
 *Objetivo de la Iteración:* Optimizar el flujo de confirmación de reserva (RE-02, P95 ≤ 2.5s) y sentar las bases para una alta usabilidad en recepción.
 
@@ -69,11 +78,11 @@ El diseño se abordó en iteraciones, cada una enfocada en satisfacer un conjunt
 
 *Criterio de "Suficiente":* El procesamiento asíncrono libera el hilo de solicitud rápidamente, permitiendo que la respuesta al usuario (P95) se mantenga bajo los 2.5 segundos, incluso si las tareas en segundo plano toman más tiempo.
 
-=== 2. CBSE (Cheesman & Daniels): El Proceso de Especificación
+==== CBSE (Cheesman & Daniels): El Proceso de Especificación
 
 Las iteraciones ADD definieron la arquitectura de alto nivel (Capas, DDD, CQRS). Sin embargo, para que esta arquitectura sea implementable y cumpla con los drivers de confiabilidad, necesitamos un proceso riguroso para especificar el comportamiento de sus partes. Aquí es donde se aplica el proceso CBSE de Cheesman & Daniels, que sigue tres fases: Identificación, Interacción y Especificación.
 
-==== 2.1. Fase 1: Identificación de Componentes
+===== Fase 1: Identificación de Componentes
 
 El objetivo de esta fase es identificar las especificaciones de componentes (<<comp spec>>) que el sistema necesita.
 
@@ -89,7 +98,7 @@ El objetivo de esta fase es identificar las especificaciones de componentes (<<c
 
 *Salida:* Un primer borrador de las Especificaciones de Componentes (<<comp spec>>) y sus interfaces (<<interface type>>) necesarias para satisfacer los requisitos funcionales.
 
-==== 2.2. Fase 2: Interacción de Componentes
+===== Fase 2: Interacción de Componentes
 
 El objetivo de esta fase es refinar las interfaces y componentes modelando cómo colaboran para realizar las operaciones del sistema.
 
@@ -97,7 +106,7 @@ El objetivo de esta fase es refinar las interfaces y componentes modelando cómo
 
 *Proceso:* Se utilizaron Diagramas de Comunicación (o Secuencia) de UML para modelar el flujo de las operaciones críticas del sistema, trazándolas contra las capas definidas en el ADD.
 
-===== Ejemplo: Flujo "Confirmar Reserva" (CU-02 + CU-03)
+====== Ejemplo: Flujo "Confirmar Reserva" (CU-02 + CU-03)
 
 Modelamos esta interacción, lo cual está reflejado en el Diagrama de Objetos de la Vista Lógica.
 . Un *BookingController* (Presentación) recibe la llamada.
@@ -110,7 +119,7 @@ Modelamos esta interacción, lo cual está reflejado en el Diagrama de Objetos d
 
 *Salida:* Este proceso validó las decisiones de las iteraciones de ADD (ej. la necesidad de una capa de aplicación para orquestar) y refinó las firmas de las operaciones en cada interfaz (<<interface type>>).
 
-==== 2.3. Fase 3: Especificación de Componentes
+===== Fase 3: Especificación de Componentes
 
 Esta es la fase final y más detallada, donde se definen los "contratos" formales que garantizan la confiabilidad del sistema.
 

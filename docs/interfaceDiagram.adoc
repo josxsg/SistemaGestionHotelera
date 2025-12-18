@@ -1,35 +1,10 @@
-Excelente punto. Tienes toda la razón. Mi error en la respuesta anterior fue omitir las imágenes y simplificar demasiado; tu intuición es 100% correcta.
-
-Vamos a hacer esto bien, de forma minuciosa y explícita, como lo requiere el Hito 4.
-
-Respondiendo a tus preguntas primero:
-
-"¿Debería ir en un nuevo adoc?"
-
-No. Esto es el refinamiento del Hito 3. El artefacto (interfaceDiagram.adoc o donde lo tengas incluido) evoluciona. Simplemente reemplazas el contenido del Hito 3 (que era la v1) por esta nueva versión v2 (Hito 4). Es el mismo documento, pero madurado.
-
-"¿Por qué eliminaste la referencia a la imagen?"
-
-Error mío. Fui negligente al centrarme solo en el texto del contrato. La imagen es fundamental porque, según Cheesman & Daniels, el contrato de interfaz (texto) está vinculado al diagrama de interfaz (visual) y su modelo de información (clases/DTOs). La imagen debe permanecer.
-
-🧩 Paso 1: Refinamiento de Contratos v2 (100% Completo)
-Aquí está la corrección minuciosa y explícita de tu documento.
-
-La diferencia clave entre el Hito 3 (v1) y el Hito 4 (v2) es:
-
-v1 (Hito 3): Describe el "camino feliz" para validar que las interacciones son suficientes.
-
-v2 (Hito 4): Especifica contractualmente el comportamiento completo, incluyendo firmas explícitas, cláusulas numeradas (PRE/POST) y, lo más importante, las Post-condiciones de Error (POST-ERR).
-
-Aquí está tu documento, actualizado al 100% para el Hito 4.
-
-==== 5.4.2 Diagramas de especificación de interfaces (v2 Hito 4)
+==== Diagramas de especificación de interfaces (v2 Hito 4)
 
 A continuación, se formaliza el contrato de especificación de cada interfaz provista por los componentes del sistema, siguiendo la metodología CBSE. Cada cláusula es normativa para la implementación y verificable.
 
-===== 1. Componente: Consulta Disponibilidad
+===== Componente: Consulta Disponibilidad
 
-====== 1.1. Interface: IConsultaDisponibilidad
+====== Interface: IConsultaDisponibilidad
 
 Esta interfaz, optimizada para ASR-RE-01 (Rendimiento), provee las operaciones para el CU-01.
 
@@ -57,9 +32,9 @@ Post-condiciones (Fallo):
 
 POST-ERR-01: Si PRE-01, PRE-02 o PRE-03 fallan, se debe retornar una excepción ArgumentoInvalidoException.
 
-===== 2. Componente: GestionReservas
+===== Componente: GestionReservas
 
-====== 2.1. Interface: IGestionReserva
+====== Interface: IGestionReserva
 
 Interfaz transaccional principal para crear (CU-02) y cancelar (CU-04) reservas, optimizada para ASR-CF-01 (Confiabilidad).
 
@@ -123,7 +98,7 @@ Post-condiciones (Fallo):
 
 POST-ERR-01: Si PRE-03 falla (política no lo permite), la operación retorna false. El estado de la Reservacion NO debe cambiar.
 
-====== 2.2. Interface: IConsultaCliente
+====== Interface: IConsultaCliente
 
 Permite a un huésped consultar sus propias reservas (CU-06).
 
@@ -145,7 +120,7 @@ Post-condiciones (Fallo):
 
 POST-ERR-01: Si PRE-01 falla, se retorna AccesoDenegadoException (ASR-SE-01).
 
-====== 2.3. Interface: IBusquedaReserva
+====== Interface: IBusquedaReserva
 
 Permite al personal (Recepcionista) buscar reservas (CU-11).
 
@@ -183,9 +158,9 @@ Post-condiciones (Fallo):
 
 POST-ERR-01: Si PRE-01 falla, se retorna AccesoDenegadoException (ASR-SE-02).
 
-===== 3. Componente: Pagos
+===== Componente: Pagos
 
-====== 3.1. Interface: IPagos
+====== Interface: IPagos
 
 Encapsula el procesamiento de cobros (CU-03, CU-08, CU-10), garantizando ASR-CF-02 (0 dobles cobros).
 
@@ -217,7 +192,7 @@ POST-ERR-02: Si PRE-02 falla (intento de doble cobro), retorna el Pago original 
 
 POST-ERR-03: Si la conexión con IPasarelaExterna falla (contingencia ASR-DA-02), retorna Pago con estado "Indeterminado" y se encola para revisión.
 
-====== 3.2. Interface: IReembolso
+====== Interface: IReembolso
 
 Procesa devoluciones de dinero (CU-04).
 
@@ -245,9 +220,9 @@ Post-condiciones (Fallo):
 
 POST-ERR-01: Si la pasarela rechaza la devolución, retorna Reembolso con estado "Fallido". Se emite auditoría "REEMBOLSO_FALLIDO".
 
-===== 4. Componente: GestionEstancias
+===== Componente: GestionEstancias
 
-====== 4.1. Interface: IGestionCheckIn
+====== Interface: IGestionCheckIn
 
 Maneja el registro de entrada del huésped (CU-07).
 
@@ -279,7 +254,7 @@ Post-condiciones (Fallo):
 
 POST-ERR-01: Si PRE-02 o PRE-03 fallan, retorna CheckInInvalidoException. No se debe crear la Estancia.
 
-====== 4.2. Interface: IGestionCheckOut
+====== Interface: IGestionCheckOut
 
 Maneja el registro de salida del huésped (CU-08).
 
@@ -313,7 +288,7 @@ Post-condiciones (Fallo):
 
 POST-ERR-01: Si PRE-03 falla (cuenta no saldada), retorna CuentaPendienteException. El estado de la Estancia NO debe cambiar.
 
-====== 4.3. Interface: IGestionHabitacion
+====== Interface: IGestionHabitacion
 
 Maneja el cambio de habitación (CU-09) y la consulta de estados (CU-12).
 
@@ -361,7 +336,7 @@ Post-condiciones (Éxito):
 
 POST-01: Retorna la lista de estados de todas las habitaciones del hotel (optimizada para ASR-US-01).
 
-====== 4.4. Interface: IConsumos
+====== Interface: IConsumos
 
 Registra cargos adicionales a la estancia (CU-10).
 
@@ -389,7 +364,7 @@ Post-condiciones (Fallo):
 
 POST-ERR-01: Si PRE-01 falla (estancia no activa), retorna EstanciaInactivaException.
 
-===== 5. Componente: AdministracionCentral
+===== Componente: AdministracionCentral
 
 (Interfaces: IInventario, ITarifas, IPoliticas, ICatalogoHotel, IGestionPersonal)
 
@@ -417,9 +392,9 @@ POST-ERR-01: Si PRE-01 falla, se debe retornar AccesoDenegadoException (ASR-SE-0
 
 POST-ERR-02: Si PRE-02 falla (datos inválidos), se debe retornar ValidacionException.
 
-===== 6. Componente: Autenticacion
+===== Componente: Autenticacion
 
-====== 6.1. Interface: ISesionUsuario
+====== Interface: ISesionUsuario
 
 Gestiona login, registro (CU-05, CU-25) y validación de tokens.
 
@@ -477,7 +452,7 @@ Post-condiciones (Fallo):
 
 POST-ERR-01: Si el token es inválido o expirado, retorna TokenInvalidoException.
 
-====== 6.2. Interface: IAutorizacion
+====== Interface: IAutorizacion
 
 Verifica roles y permisos (ASR-SE-01, ASR-SE-02).
 
@@ -499,9 +474,9 @@ POST-02: Retorna false si no tiene permiso.
 
 POST-03: Si retorna false, se emite un evento de auditoría "ACCESO_DENEGADO_ROL" (ASR-SE-01, requiere IAuditoria).
 
-===== 7. Componente: Notificaciones
+===== Componente: Notificaciones
 
-====== 7.1. Interface: INotificacion
+====== Interface: INotificacion
 
 Abstracción para envío asíncrono de comunicaciones (optimizado para no bloquear al cliente).
 
@@ -527,9 +502,9 @@ Post-condiciones (Fallo):
 
 POST-ERR-01: Si la cola de mensajería está caída, retorna false (o lanza ColaCaidaException).
 
-===== 8. Componente: Auditoria
+===== Componente: Auditoria
 
-====== 8.1. Interface: IAuditoria
+====== Interface: IAuditoria
 
 Recibe eventos de log de alta prioridad (ASR-AU-01).
 
@@ -549,7 +524,7 @@ POST-01: El evento se almacena de forma persistente y segura en el "sumidero" de
 
 POST-02: La operación es "fire-and-forget" y no debe lanzar excepciones al componente que la llama (debe manejar sus propios fallos internamente).
 
-====== 8.2. Interface: IConsultaTrazabilidad
+====== Interface: IConsultaTrazabilidad
 
 Permite al actor Auditor rastrear transacciones (CU-34).
 

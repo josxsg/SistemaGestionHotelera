@@ -5,15 +5,15 @@
 :toclevels: 3
 :sectnums:
 
-== Árbol de Utilidades (Utility Tree)
+== Impulsores Arquitectónicos (ASRs) y Priorización
 
 Este capítulo describe los atributos de calidad prioritarios que guiarán el diseño del sistema, representados visualmente en el árbol de utilidades y detallados en los escenarios de calidad.
 
-=== Árbol de Utilidades Consolidado
+=== Árbol de Utilidades (Utility Tree)
 
 image::img/utilityTree/utilityTree.jpg[Utility Tree, width=800]
 
-=== 3.2 Escenarios de Atributos de Calidad (ASRs)
+=== Escenarios de Atributos de Calidad (ASRs)
 
 A continuación, se detallan los escenarios prioritarios que servirán como criterio para evaluar el diseño arquitectónico. Cada escenario se describe utilizando estrictamente el formato de 6 partes definido por Bass, Clements & Kazman, alineando los estímulos y entornos a las tablas canónicas de cada atributo.
 
@@ -211,11 +211,11 @@ A continuación, se detallan los escenarios prioritarios que servirán como crit
 |===
 
 
-== Restricciones y preocupaciones
+=== Restricciones y preocupaciones
 
 A continuación se documentan dos tipos de influencias en el diseño que limitan el espacio de soluciones posibles: las *Restricciones* (decisiones inamovibles) y las *Preocupaciones* (objetivos que guían el diseño).
 
-=== Lista de Restricciones
+==== Lista de Restricciones
 
 [options="header", cols="1,3,1"]
 |===
@@ -242,7 +242,7 @@ A continuación se documentan dos tipos de influencias en el diseño que limitan
 | Técnico/Legal
 |===
 
-=== Lista de Preocupaciones (Concerns)
+==== Lista de Preocupaciones (Concerns)
 
 [options="header", cols="1,1,3"]
 |===

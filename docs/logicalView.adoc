@@ -1,8 +1,17 @@
-== 5.1 Vista Lógica
+= Arquitectura
+:doctype: book
+:lang: es
+:encoding: utf-8
+:toclevels: 3
+:sectnums:
+
+== Arquitectura
+
+=== Vista Lógica
 
 La Vista Lógica describe la estructura estática del sistema, descomponiéndolo en capas y módulos funcionales. Su propósito es ilustrar cómo la organización del código satisface los impulsores arquitectónicos de **Confiabilidad** (evitar errores lógicos) y **Mantenibilidad** (facilitar cambios futuros).
 
-=== 5.1.1 Justificación del Estilo Arquitectónico
+==== Justificación del Estilo Arquitectónico
 
 Se ha seleccionado una Arquitectura en Capas con un núcleo modelado mediante Domain-Driven Design (DDD). Esta decisión responde directamente a los impulsores más críticos del proyecto.
 
@@ -27,14 +36,14 @@ Se ha seleccionado una Arquitectura en Capas con un núcleo modelado mediante Do
 * *(Negativo) Sobrecarga de Código (Boilerplate):* Este estilo requiere más clases y mapeo de datos entre capas (ej. DTOs en Presentación vs. Entidades en Dominio), lo que incrementa la complejidad inicial del código.
 * *(Negativo) Latencia Potencial:* Una solicitud debe atravesar múltiples capas, añadiendo una pequeña sobrecarga de rendimiento. Este trade-off es aceptable porque la Confiabilidad (CF-01, CF-02) es el atributo más crítico del sistema.
 
-=== 5.1.2 Diagrama de Paquetes (Vista Lógica)
+==== Diagrama de Paquetes (Vista Lógica)
 
 El siguiente diagrama muestra la descomposición en las cuatro capas principales y los módulos de dominio refinados, que reflejan mejor la funcionalidad descrita en los casos de uso.
 
 image::img/logicalView/logical_view.jpg[Vista Lógica, width=800]
 
 
-=== 5.1.3 Descripción de los Paquetes Lógicos (Capas)
+==== Descripción de los Paquetes Lógicos (Capas)
 
 . *Presentation Layer (Capa de Presentación)*
 +
@@ -65,21 +74,21 @@ image::img/logicalView/logical_view.jpg[Vista Lógica, width=800]
 *Contenido:* Implementaciones de los repositorios definidos en el Dominio (usando el RDBMS que exige CON-1), clientes para APIs externas (como la pasarela de pago de CON-5), y servicios de logging (para CRN-5).
 *Justificación (Driver -> Táctica):* Satisface la Mantenibilidad y las Restricciones (CON-1, CON-5) mediante la Inversión de Dependencias. Si se cambia de proveedor de pagos, los cambios se limitan a esta capa.
 
-== 5.2 Modelo de Conceptos de Negocio
+=== Modelo de Conceptos de Negocio
 
 El Modelo de Conceptos de Negocio define el vocabulario común y las reglas estáticas que gobiernan el sistema. Según *Cheesman & Daniels*, este artefacto es la fuente de verdad para la identificación de componentes y datos. Se centra exclusivamente en el "Qué" (entidades, atributos de negocio y relaciones) ignorando el "Cómo" (tablas, claves foráneas, métodos).
 
-=== 5.2.1 Diagrama de Clases Conceptual
+==== Diagrama de Clases Conceptual
 
 El siguiente diagrama UML ilustra las entidades del dominio.
 
 image::img/conceptModel/conceptModel.jpg[Diagrama de clases conceptual, width=900]
 
-=== 5.2.2 Descripción de Conceptos Clave
+==== Descripción de Conceptos Clave
 
 A continuación se definen semánticamente los agregados mostrados en el diagrama, alineados con el Glosario (Hito 1).
 
-==== A. Gestión de Inventario y Catálogo
+===== A. Gestión de Inventario y Catálogo
 El núcleo del negocio distingue entre el producto comercializable y el activo físico.
 
 * **Hotel:** La unidad de negocio principal. Agrupa habitaciones y políticas.
@@ -87,7 +96,7 @@ El núcleo del negocio distingue entre el producto comercializable y el activo f
 * **Habitación:** El activo tangible (ej. "Habitación 305"). Es el objeto de la *Estancia*. Posee un estado operativo (Limpia, Sucia, En Mantenimiento).
 * **Política de Overbooking:** Regla de negocio que define el margen de sobreventa permitido (10% según CON-4) para un Tipo de Habitación específico.
 
-==== B. Gestión de Reservas y Precios
+===== B. Gestión de Reservas y Precios
 Maneja la relación contractual con el cliente antes de su llegada.
 
 * **Reservación:** Contrato que garantiza la disponibilidad de una unidad de un Tipo de Habitación para un rango de fechas determinado.
@@ -95,7 +104,7 @@ Maneja la relación contractual con el cliente antes de su llegada.
 * **Tarifa Diaria:** Precio específico para un *Tipo de Habitación* en una fecha concreta. Permite la estrategia de precios dinámicos.
 * **Pago:** Registro transaccional del cobro. Dado el requisito de "Pago Completo" (CON-3), una reserva no nace confirmada sin un pago asociado exitoso.
 
-==== C. Gestión de Estancias (Operación)
+===== C. Gestión de Estancias (Operación)
 Maneja la ocupación real en el hotel.
 
 * **Estancia:** Representa el periodo en que el huésped ocupa el hotel. Se crea durante el proceso de *Check-in*.
@@ -104,7 +113,7 @@ Maneja la ocupación real en el hotel.
 * **Huésped:** La persona titular del contrato.
 * **Disponibilidad Diaria:** Para representar explícitamente el consumo de inventario por noche, el modelo incorpora el concepto de DisponibilidadDiaria, el cual permite controlar la asignación de cupos por tipo de habitación y fecha, habilitando políticas de overbooking y evitando dobles reservas bajo concurrencia.
 
-=== 5.2.3 Reglas de Negocio Explícitas en el Modelo
+==== Reglas de Negocio Explícitas en el Modelo
 
 1.  **Separación Reserva/Estancia:** Una `Reservación` puede existir sin `Estancia` (antes de llegar), pero una `Estancia` debe originarse de una `Reservación` (o Walk-in convertido a reserva inmediata).
 2.  **Asignación Tardía:** La `Habitación` se asigna a la `Estancia`, no a la `Reservación`. Esto permite optimizar el tablero de ocupación hasta el último minuto.

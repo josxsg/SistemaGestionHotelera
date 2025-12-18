@@ -1,4 +1,10 @@
-[[conclusions]]
+= Conclusiones
+:doctype: book
+:lang: es
+:encoding: utf-8
+:toclevels: 3
+:sectnums:
+
 == Conclusiones y Análisis de Riesgos
 
 === Conclusiones del Diseño Arquitectónico
