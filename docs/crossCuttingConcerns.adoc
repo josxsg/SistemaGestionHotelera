@@ -1,9 +1,15 @@
-[[cross-cutting-concerns]]
 = Aspectos Transversales (Cross-Cutting Concerns)
+:doctype: book
+:lang: es
+:encoding: utf-8
+:toclevels: 3
+:sectnums:
+
+== Aspectos Transversales (Cross-Cutting Concerns)
 
 Los aspectos transversales son aquellas funcionalidades que afectan a múltiples módulos del sistema y que, de no manejarse de forma centralizada, resultarían en duplicidad de código y falta de coherencia arquitectónica. A continuación, se detalla la estrategia para los tres aspectos clave de *ArchiHotel*.
 
-== 1. Seguridad (Autenticación y Autorización)
+=== Seguridad (Autenticación y Autorización)
 
 La seguridad es el aspecto transversal más crítico, gobernado por los drivers **ASR-SE-01** y **ASR-SE-02**. En lugar de implementar lógica de seguridad en cada componente, se utiliza una estrategia de **Seguridad Perimetral y Middleware**.
 
@@ -12,7 +18,7 @@ La seguridad es el aspecto transversal más crítico, gobernado por los drivers 
 * **Autorización (Roles):** Se utilizan interceptores (Filtros o Aspectos AOP) que interceptan la llamada antes de llegar a la lógica de negocio.
     * *Ejemplo:* Antes de ejecutar `cancelarReserva()`, un interceptor verifica si el rol en el token es `CLIENTE` y si el `userID` del token coincide con el dueño de la reserva, o si el rol es `ADMINISTRADOR`. Esto centraliza las políticas de control de acceso.
 
-== 2. Observabilidad (Logging y Auditoría)
+=== Observabilidad (Logging y Auditoría)
 
 Para cumplir con el requisito de auditabilidad (**ASR-AU-01**) y facilitar el diagnóstico de errores, se implementa una estrategia de **Logging Estructurado y Correlación**.
 
@@ -20,7 +26,7 @@ Para cumplir con el requisito de auditabilidad (**ASR-AU-01**) y facilitar el di
 * **Logging Asíncrono:** Los componentes no escriben logs directamente a disco para no bloquear la ejecución. Envían eventos de log a una cola o colector (ej. ELK Stack o Splunk).
 * **Auditoría de Negocio:** A diferencia de los logs técnicos, los eventos de negocio críticos (Reserva Creada, Pago Procesado) se manejan como una transacción explícita invocando la interfaz `IAuditoria`, garantizando que la evidencia quede persistida inmutablemente.
 
-== 3. Manejo de Excepciones
+=== Manejo de Excepciones
 
 Para garantizar una experiencia de usuario consistente y proteger la estructura interna del sistema, se define una **Estrategia Global de Manejo de Errores**.
 
