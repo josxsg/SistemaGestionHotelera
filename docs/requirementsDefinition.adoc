@@ -4,6 +4,7 @@
 :encoding: utf-8
 :toclevels: 3
 :sectnums:
+:imagesdir: img
 
 == Definición de Requerimientos
 
@@ -24,7 +25,9 @@ Este apartado formaliza el alcance, las fronteras y el propósito del diseño ar
 
 ==== Diagrama de Contexto del Sistema
 
-image::img/contextDiagram/diagramaContexto.jpg[Diagrama de Contexto, width=800, align=center]
+
+image::contextDiagram/diagramaContexto.jpg[Diagrama de Contexto, width=800, align=center]
+
 
 ==== Fronteras del Sistema
 Las fronteras definen qué funcionalidades y responsabilidades pertenecen al sistema a construir y cuáles quedan fuera o son gestionadas por sistemas externos. El diagrama de contexto visualiza estas fronteras, mostrando al Sistema de Reservaciones como el componente central que interactúa con usuarios y sistemas externos, pero que no los incluye.
@@ -74,21 +77,33 @@ Los siguientes diagramas detallan las funcionalidades principales del sistema, a
 
 ==== Gestión de Cuentas y Políticas
 
-image::img/UCdiagrams/AdministracionDeCuentasDePersonal.jpg[Diagrama CU: Administración de Cuentas de Personal, width=600, align=center]
 
-image::img/UCdiagrams/AdministracionDeTarifasYPoliticas.jpg[Diagrama CU: Administración de Tarifas y Políticas, width=600, align=center]
+image::UCdiagrams/AdministracionDeCuentasDePersonal.jpg[Diagrama CU: Administración de Cuentas de Personal, width=600, align=center]
 
-image::img/UCdiagrams/Auditoria.jpg[Diagrama CU: Auditoría, width=600, align=center]
+
+image::UCdiagrams/AdministracionDeTarifasYPoliticas.jpg[Diagrama CU: Administración de Tarifas y Políticas, width=600, align=center]
+
+
+image::UCdiagrams/Auditoria.jpg[Diagrama CU: Auditoría, width=600, align=center]
+
 
 ===== Gestión de Operaciones
-image::img/UCdiagrams/GestionDeEstancias.jpg[Diagrama CU: Gestión de Estancias (Check-in/out), width=600, align=center]
 
-image::img/UCdiagrams/GestionDeHabitaciones.jpg[Diagrama CU: Gestión de Habitaciones, width=600, align=center]
 
-image::img/UCdiagrams/GestionDeHoteles.jpg[Diagrama CU: Gestión de Hoteles, width=600, align=center]
+image::UCdiagrams/GestionDeEstancias.jpg[Diagrama CU: Gestión de Estancias (Check-in/out), width=600, align=center]
+
+
+image::UCdiagrams/GestionDeHabitaciones.jpg[Diagrama CU: Gestión de Habitaciones, width=600, align=center]
+
+
+image::UCdiagrams/GestionDeHoteles.jpg[Diagrama CU: Gestión de Hoteles, width=600, align=center]
+
 
 ===== Flujo Principal
-image::img/UCdiagrams/ReservacionesYCuentasDeHuesped.jpg[Diagrama CU: Reservaciones y Cuentas de Huésped, width=600, align=center]
+
+
+image::UCdiagrams/ReservacionesYCuentasDeHuesped.jpg[Diagrama CU: Reservaciones y Cuentas de Huésped, width=600, align=center]
+
 
 === Descripciones de casos de uso.
 
