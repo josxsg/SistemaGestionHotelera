@@ -23,9 +23,9 @@ jobs:
      # Copiar recursos estáticos (imágenes)
      - name: Copy static assets
        run: |
-         if [ -d docs/images ]; then
-           mkdir -p build/images
-           cp -r docs/images/* build/images/
+         if [ -d docs/img ]; then
+           mkdir -p build/img
+           cp -r docs/img/* build/img/
          fi
      - uses: actions/upload-pages-artifact@v3
        with:
