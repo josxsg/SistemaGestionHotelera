@@ -1,0 +1,29 @@
+[[cross-cutting-concerns]]
+= Aspectos Transversales (Cross-Cutting Concerns)
+
+Los aspectos transversales son aquellas funcionalidades que afectan a múltiples módulos del sistema y que, de no manejarse de forma centralizada, resultarían en duplicidad de código y falta de coherencia arquitectónica. A continuación, se detalla la estrategia para los tres aspectos clave de *ArchiHotel*.
+
+== 1. Seguridad (Autenticación y Autorización)
+
+La seguridad es el aspecto transversal más crítico, gobernado por los drivers **ASR-SE-01** y **ASR-SE-02**. En lugar de implementar lógica de seguridad en cada componente, se utiliza una estrategia de **Seguridad Perimetral y Middleware**.
+
+* **Autenticación (Identidad):** Se implementa mediante JSON Web Tokens (JWT). El `API Gateway` o un componente central de `Autenticación` valida las credenciales del usuario una sola vez y emite un token firmado.
+* **Propagación de Contexto:** Este token acompaña cada solicitud HTTP en el encabezado `Authorization`. Los componentes internos son *stateless* y validan la firma y expiración del token sin necesidad de consultar la base de datos de usuarios constantemente.
+* **Autorización (Roles):** Se utilizan interceptores (Filtros o Aspectos AOP) que interceptan la llamada antes de llegar a la lógica de negocio.
+    * *Ejemplo:* Antes de ejecutar `cancelarReserva()`, un interceptor verifica si el rol en el token es `CLIENTE` y si el `userID` del token coincide con el dueño de la reserva, o si el rol es `ADMINISTRADOR`. Esto centraliza las políticas de control de acceso.
+
+== 2. Observabilidad (Logging y Auditoría)
+
+Para cumplir con el requisito de auditabilidad (**ASR-AU-01**) y facilitar el diagnóstico de errores, se implementa una estrategia de **Logging Estructurado y Correlación**.
+
+* **Correlation ID:** Cada solicitud que entra al sistema recibe un identificador único (`TraceID`) en el Balanceador de Carga. Este ID se pasa a través de todas las llamadas entre componentes (incluso en eventos asíncronos).
+* **Logging Asíncrono:** Los componentes no escriben logs directamente a disco para no bloquear la ejecución. Envían eventos de log a una cola o colector (ej. ELK Stack o Splunk).
+* **Auditoría de Negocio:** A diferencia de los logs técnicos, los eventos de negocio críticos (Reserva Creada, Pago Procesado) se manejan como una transacción explícita invocando la interfaz `IAuditoria`, garantizando que la evidencia quede persistida inmutablemente.
+
+== 3. Manejo de Excepciones
+
+Para garantizar una experiencia de usuario consistente y proteger la estructura interna del sistema, se define una **Estrategia Global de Manejo de Errores**.
+
+* **Excepciones Tipificadas:** Se definen excepciones de dominio (`ReservaNoEncontradaException`, `PagoRechazadoException`, `InventarioAgotadoException`) independientes de la tecnología (SQL, HTTP).
+* **Translación de Errores:** Un manejador global (*Global Exception Handler*) captura estas excepciones en la capa de frontera y las transforma en respuestas HTTP estandarizadas (RFC 7807 Problem Details), ocultando los *stack traces* de Java/SQL al cliente externo por seguridad.
+* **Circuit Breaking:** Para llamadas a sistemas externos (Pasarela de Pagos), se envuelven las llamadas en patrones de *Circuit Breaker*. Si el sistema externo falla repetidamente, el aspecto transversal abre el circuito inmediatamente para evitar tiempos de espera innecesarios y permitir una degradación controlada del servicio.
